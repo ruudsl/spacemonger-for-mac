@@ -156,6 +156,16 @@ Sizes are **on-disk allocated sizes** (`totalFileAllocatedSize`), matching what
 Finder reports, base-1000. The scanner does not follow symlinks and never
 crosses into other mounted volumes, so figures stay accurate.
 
+## Recent improvements
+
+Determinate progress, auto-cached last scan, drag-and-drop a folder to scan,
+size-unit & default-view/colour preferences, colour-blind palette, follow-symlink
+option, confirm-before-delete, exclusions import/export, comparison CSV export,
+"Check for Updates", a sample of unreadable folders in the access banner, treemap
+cushion shading, hovered full path in the breadcrumb, Cmd/Shift multi-selection
+with bulk actions, correct pluralisation (stringsdict), unit tests, and a
+CI/notarise pipeline template.
+
 ## Roadmap / ideas
 
 Done: app icon, recent scans (security-scoped bookmarks), treemap view,
@@ -166,14 +176,18 @@ concurrent scanning, safety stoppers, **local snapshot & purgeable-space
 management** (`tmutil`), **spacebar Quick Look**, **Open With** menu, a
 localised Tech Specs sheet, and a 15-language UI.
 
-Still on the list:
+Still on the list (deferred deliberately — they need testing, signing or a large
+migration that risks the single-target build):
 
-- A bundled **XPC privileged helper** (a more seamless alternative to the
-  authorized-`du` administrator scan). Ready-to-wire source and setup steps are
-  in [`PrivilegedHelper/`](PrivilegedHelper/README.md) — it needs a paid Apple
-  Developer ID to sign, so it's kept out of the default build.
-- Reading the few files that even root cannot access (rare).
-- Code-signing / notarisation pipeline and automated tests.
+- **Live tree during scanning** and deeper scanner perf/memory work.
+- **Keyboard navigation in the map** (arrow keys to browse sectors).
+- **Per-snapshot sizes** (`tmutil`/`diskutil` don't expose these reliably).
+- A bundled **XPC privileged helper** — ready-to-wire source is in
+  [`PrivilegedHelper/`](PrivilegedHelper/README.md); needs a paid Developer ID.
+- A **sandboxed** App Store build variant.
+- Migrating localisation to a **String Catalog** and full Help/Tech-Specs
+  translation in all 15 languages (Tech Specs is already translated; the Help
+  guide is English + Dutch, others fall back to English).
 - Native-speaker review of the translations.
 
 ## Tech Specs
