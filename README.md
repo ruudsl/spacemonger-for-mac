@@ -10,6 +10,14 @@ to the Trash.
 
 Built with **SwiftUI** (macOS 13+).
 
+## Download
+
+Grab the latest build from the releases page:
+
+➡️ **[Download v1.0](https://github.com/ruudsl/spacemonger-for-mac/releases/tag/v1.0)**
+
+Or [build it yourself](#building) from source.
+
 ## Features
 
 | Area | In SpaceMonger |
