@@ -132,10 +132,11 @@ SpaceMonger/
     ExcludeMatcher.swift      Glob matching for exclusions
     SystemPaths.swift         Safety stoppers for system-critical paths
     Localization.swift        loc() / locf() helpers
-  en.lproj / nl.lproj         Localized UI strings (English + Dutch)
+  *.lproj                     Localized UI strings (15 languages)
 PrivilegedHelper/             Optional XPC helper (out-of-target; see its README)
 tools/
   make_icon.py                Generates the app icon PNGs (pure stdlib)
+  make_locales.py             Generates every Localizable.strings (source of truth)
 ```
 
 ## How sizing works
@@ -175,7 +176,8 @@ Still on the list:
   cleaning; deletions go to the Trash.
 - **Privacy:** reads only metadata (names & sizes); nothing leaves your Mac.
 - **Requirements:** macOS 13+ (Apple Silicon & Intel, 64-bit).
-- **Languages:** English, Nederlands.
+- **Languages:** English, Français, Deutsch, Italiano, Polski, Русский, Español,
+  Português, Svenska, Türkçe, Українська, 简体中文, 繁體中文, 日本語, Nederlands.
 
 The same information is available in-app via **Help → SpaceMonger Tech Specs**.
 

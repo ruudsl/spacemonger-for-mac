@@ -62,7 +62,7 @@ struct TechSpecsView: View {
                     section("System requirements", "cpu", [
                         "macOS 13 Ventura or newer (currently running \(osVersion)).",
                         "Apple Silicon (ARM64) and Intel (x86-64).",
-                        "Languages: English, Nederlands."
+                        "Languages: English, Français, Deutsch, Italiano, Polski, Русский, Español, Português, Svenska, Türkçe, Українська, 简体中文, 繁體中文, 日本語, Nederlands."
                     ])
                 }
                 .padding()
