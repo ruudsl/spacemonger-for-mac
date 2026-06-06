@@ -213,3 +213,13 @@
 "Couldn't check for updates." = "Kon niet op updates controleren.";
 "You're up to date." = "Je bent up-to-date.";
 "Version %@ is available. You have %@." = "Versie %@ is beschikbaar. Jij hebt %@.";
+
+/* Uitgestelde-items batch: live voortgang, helper, snapshots */
+"%lld of %lld top-level folders" = "%lld van %lld mappen op het hoogste niveau";
+"macOS doesn't report a size per snapshot; use Free Up Space to reclaim as much as possible." = "macOS geeft geen grootte per momentopname; gebruik “Ruimte vrijmaken” om zoveel mogelijk terug te winnen.";
+"Privileged Helper (advanced)" = "Geprivilegeerde helper (geavanceerd)";
+"Optional. When installed and signed, the administrator scan runs without a per-scan password prompt. Without it, SpaceMonger uses an authorized command instead." = "Optioneel. Indien geïnstalleerd en getekend draait de beheerdersscan zonder wachtwoordvraag per scan. Zonder helper gebruikt SpaceMonger een geautoriseerde opdracht.";
+"Installed" = "Geïnstalleerd";
+"Not installed" = "Niet geïnstalleerd";
+"Install…" = "Installeer…";
+"Remove" = "Verwijderen";

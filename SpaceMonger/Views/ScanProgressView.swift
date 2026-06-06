@@ -45,6 +45,13 @@ struct ScanProgressView: View {
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
+
+                if let tlp = vm.topLevelProgress, tlp.total > 0 {
+                    Text(locf(loc("%lld of %lld top-level folders"), tlp.done, tlp.total))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .monospacedDigit()
+                }
             }
 
             Button("Cancel") {

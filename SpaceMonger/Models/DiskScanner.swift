@@ -16,6 +16,10 @@ struct DiskScanner {
     /// to avoid cycles).
     var followSymlinks = false
 
+    /// Reports (completed, total) top-level directories as they finish, for a
+    /// live "filling in" feel during the scan. Called off the main thread.
+    var onTopLevelProgress: ((Int, Int) -> Void)?
+
     struct Progress {
         var scannedItems: Int
         var scannedBytes: Int64
@@ -28,15 +32,14 @@ struct DiskScanner {
         var unreadableSample: [String] = []
     }
 
+    // Only the keys we actually use, so `contentsOfDirectory` prefetches less.
     private static let resourceKeys: Set<URLResourceKey> = [
         .isDirectoryKey,
-        .isRegularFileKey,
         .isSymbolicLinkKey,
         .isPackageKey,
         .nameKey,
-        .fileSizeKey,
-        .fileAllocatedSizeKey,
         .totalFileAllocatedSizeKey,
+        .fileAllocatedSizeKey,
         .volumeIdentifierKey
     ]
 
@@ -116,6 +119,7 @@ struct DiskScanner {
                 } else {
                     results.set(node, at: i)
                 }
+                onTopLevelProgress?(results.markDone(), topDirs.count)
             } catch {
                 results.markCancelled()
             }
@@ -301,9 +305,12 @@ private final class ParallelResults {
 
     init(count: Int) { nodes = [FileNode?](repeating: nil, count: count) }
 
+    private var done = 0
+
     func set(_ node: FileNode, at index: Int) {
         lock.lock(); nodes[index] = node; lock.unlock()
     }
+    func markDone() -> Int { lock.lock(); done += 1; let d = done; lock.unlock(); return d }
     func markCancelled() { lock.lock(); cancelled = true; lock.unlock() }
     var isCancelled: Bool { lock.lock(); defer { lock.unlock() }; return cancelled }
 }

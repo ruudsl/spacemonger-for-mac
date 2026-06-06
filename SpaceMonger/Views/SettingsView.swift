@@ -7,6 +7,7 @@ struct SettingsView: View {
     @EnvironmentObject var settings: AppSettings
     @State private var newPattern = ""
     @State private var hasFullDiskAccess = false
+    @State private var helperAvailable = false
 
     var body: some View {
         ScrollView {
@@ -15,12 +16,44 @@ struct SettingsView: View {
                 Divider()
                 fullDiskAccessSection
                 Divider()
+                helperSection
+                Divider()
                 exclusionsSection
             }
             .padding(20)
         }
-        .frame(width: 500, height: 600)
-        .onAppear { hasFullDiskAccess = DiskAccess.hasFullDiskAccess() }
+        .frame(width: 500, height: 640)
+        .onAppear {
+            hasFullDiskAccess = DiskAccess.hasFullDiskAccess()
+            helperAvailable = PrivilegedHelperManager.isAvailable
+        }
+    }
+
+    // MARK: - Privileged helper (advanced)
+
+    private var helperSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Privileged Helper (advanced)").font(.headline)
+            Text("Optional. When installed and signed, the administrator scan runs without a per-scan password prompt. Without it, SpaceMonger uses an authorized command instead.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Label(helperAvailable ? "Installed" : "Not installed",
+                      systemImage: helperAvailable ? "checkmark.circle.fill" : "minus.circle")
+                    .foregroundStyle(helperAvailable ? Color.green : Color.secondary)
+                Spacer()
+                if helperAvailable {
+                    Button("Remove") { try? PrivilegedHelperManager.uninstall(); refreshHelper() }
+                } else {
+                    Button("Install…") { try? PrivilegedHelperManager.install(); refreshHelper() }
+                }
+            }
+        }
+    }
+
+    private func refreshHelper() {
+        helperAvailable = PrivilegedHelperManager.isAvailable
     }
 
     // MARK: - General

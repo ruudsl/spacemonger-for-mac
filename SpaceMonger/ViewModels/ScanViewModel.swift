@@ -107,6 +107,8 @@ final class ScanViewModel: ObservableObject {
     @Published private(set) var scanSummary: String?
     /// Best-effort total to scan (volume used space), for a determinate bar.
     @Published private(set) var expectedBytes: Int64 = 0
+    /// Top-level folders measured so far, for live feedback during a scan.
+    @Published private(set) var topLevelProgress: (done: Int, total: Int)?
 
     // The tree and navigation
     @Published private(set) var rootNode: FileNode?
@@ -239,6 +241,7 @@ final class ScanViewModel: ObservableObject {
         scannedVolume = volume
         scannedURL = url
         scanProgress = nil
+        topLevelProgress = nil
         expectedBytes = volume?.usedCapacity ?? 0
         scanState = .scanning
 
@@ -255,22 +258,37 @@ final class ScanViewModel: ObservableObject {
             do {
                 let result: DiskScanner.Result
                 if privileged {
-                    let root = try PrivilegedScanner.scan(
-                        at: url,
-                        exclude: matcher,
-                        isCancelled: { token.isCancelled },
-                        progress: { count in
-                            DispatchQueue.main.async {
-                                guard self.cancelToken === token else { return }
-                                self.scanProgress = .init(scannedItems: count, scannedBytes: 0,
-                                                          currentPath: loc("Reading as administrator…"))
+                    let root: FileNode
+                    if PrivilegedHelperManager.isAvailable {
+                        // Seamless path via the signed XPC helper (no password prompt).
+                        let filePath = try await PrivilegedHelperManager.measure(url)
+                        root = try PrivilegedScanner.tree(fromFile: filePath, rootURL: url, exclude: matcher)
+                        try? FileManager.default.removeItem(atPath: filePath)
+                    } else {
+                        // Fallback: authorized `du` (one admin password prompt).
+                        root = try PrivilegedScanner.scan(
+                            at: url,
+                            exclude: matcher,
+                            isCancelled: { token.isCancelled },
+                            progress: { count in
+                                DispatchQueue.main.async {
+                                    guard self.cancelToken === token else { return }
+                                    self.scanProgress = .init(scannedItems: count, scannedBytes: 0,
+                                                              currentPath: loc("Reading as administrator…"))
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                     result = DiskScanner.Result(root: root, unreadableDirectories: 0)
                 } else {
                     var scanner = DiskScanner(exclude: matcher)
                     scanner.followSymlinks = followSymlinks
+                    scanner.onTopLevelProgress = { done, total in
+                        DispatchQueue.main.async {
+                            guard self.cancelToken === token else { return }
+                            self.topLevelProgress = (done, total)
+                        }
+                    }
                     result = try scanner.scan(
                         at: url,
                         isCancelled: { token.isCancelled },
@@ -374,6 +392,24 @@ final class ScanViewModel: ObservableObject {
     func select(_ node: FileNode?) {
         selectedNode = node
         listSelection = node.map { [$0.id] } ?? []
+    }
+
+    /// Keyboard navigation: move the selection among the focused folder's
+    /// children (arrow keys).
+    func selectAdjacentChild(_ delta: Int) {
+        guard let kids = focusNode?.children, !kids.isEmpty else { return }
+        let index: Int
+        if let current = selectedNode, let i = kids.firstIndex(where: { $0 === current }) {
+            index = min(max(0, i + delta), kids.count - 1)
+        } else {
+            index = delta >= 0 ? 0 : kids.count - 1
+        }
+        select(kids[index])
+    }
+
+    /// Drills into the current selection (Enter/Return).
+    func drillSelected() {
+        if let node = selectedNode { drill(into: node) }
     }
 
     /// Nodes currently multi-selected in the contents list.

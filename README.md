@@ -176,18 +176,26 @@ concurrent scanning, safety stoppers, **local snapshot & purgeable-space
 management** (`tmutil`), **spacebar Quick Look**, **Open With** menu, a
 localised Tech Specs sheet, and a 15-language UI.
 
-Still on the list (deferred deliberately — they need testing, signing or a large
-migration that risks the single-target build):
+Also addressed (in safe, build-preserving forms):
 
-- **Live tree during scanning** and deeper scanner perf/memory work.
-- **Keyboard navigation in the map** (arrow keys to browse sectors).
-- **Per-snapshot sizes** (`tmutil`/`diskutil` don't expose these reliably).
-- A bundled **XPC privileged helper** — ready-to-wire source is in
-  [`PrivilegedHelper/`](PrivilegedHelper/README.md); needs a paid Developer ID.
-- A **sandboxed** App Store build variant.
-- Migrating localisation to a **String Catalog** and full Help/Tech-Specs
-  translation in all 15 languages (Tech Specs is already translated; the Help
-  guide is English + Dutch, others fall back to English).
+- **Live scan feedback** — top-level folder progress (`3 of 12 folders`).
+- **Faster scanning** — the scanner prefetches only the resource keys it uses.
+- **Keyboard navigation in the map** — arrows move the selection, Return zooms
+  in, ⌘↑ goes up a level (ignored while typing).
+- **Snapshots & purgeable** — "Free Up Space" reclaims as much as macOS allows
+  (per-snapshot sizes aren't exposed by the OS).
+- **XPC privileged helper** — the app side is integrated
+  (`PrivilegedHelperManager`, Settings → install); it activates once you add and
+  sign the helper target from [`PrivilegedHelper/`](PrivilegedHelper/README.md).
+- **Sandboxed build variant** — opt-in entitlements + guide in
+  [`Distribution/`](Distribution/Sandboxing.md).
+- **String Catalog** — a converter (`tools/make_xcstrings.py`) is provided.
+
+Genuinely remaining:
+
+- Deep memory work for multi-million-file disks, and a true streaming tree.
+- Translating the Help guide bodies into the remaining languages (Tech Specs is
+  already translated everywhere; the Help guide is English + Dutch).
 - Native-speaker review of the translations.
 
 ## Tech Specs

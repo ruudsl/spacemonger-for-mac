@@ -74,9 +74,17 @@ enum PrivilegedScanner {
         return root
     }
 
+    /// Parses a `du` listing file (e.g. produced by the XPC helper) into a tree.
+    static func tree(fromFile path: String, rootURL: URL, exclude: ExcludeMatcher) throws -> FileNode {
+        let root = try buildTree(fromFileAt: path, rootURL: rootURL.standardizedFileURL,
+                                 exclude: exclude, isCancelled: { false }, progress: { _ in })
+        root.sortBySizeDescending(recursive: true)
+        return root
+    }
+
     // MARK: - Parsing du output
 
-    private static func buildTree(fromFileAt tmp: String,
+    static func buildTree(fromFileAt tmp: String,
                                   rootURL: URL,
                                   exclude: ExcludeMatcher,
                                   isCancelled: () -> Bool,

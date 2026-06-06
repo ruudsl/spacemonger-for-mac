@@ -41,6 +41,9 @@ struct SnapshotsView: View {
                 Text("Snapshots & Purgeable Space").font(.title3.weight(.semibold))
                 Text(locf(loc("Purgeable: about %@"), Formatting.bytes(vm.purgeableBytes)))
                     .font(.caption).foregroundStyle(.secondary)
+                Text("macOS doesn't report a size per snapshot; use Free Up Space to reclaim as much as possible.")
+                    .font(.caption2).foregroundStyle(.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
             Button(loc("Done")) { vm.showSnapshots = false }

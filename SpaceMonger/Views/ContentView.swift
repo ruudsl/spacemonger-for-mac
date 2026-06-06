@@ -88,6 +88,17 @@ private struct ResultsView: View {
             vm.quickLook(node)
             return true
         }
+        .mapKeyboard { event in
+            let cmd = event.modifierFlags.contains(.command)
+            switch event.keyCode {
+            case 126: if cmd { vm.navigateUp() } else { vm.selectAdjacentChild(-1) }; return true  // ↑
+            case 125: vm.selectAdjacentChild(1); return true                                        // ↓
+            case 123: vm.selectAdjacentChild(-1); return true                                       // ←
+            case 124: vm.selectAdjacentChild(1); return true                                        // →
+            case 36, 76: vm.drillSelected(); return true                                            // Return/Enter
+            default: return false
+            }
+        }
     }
 }
 
