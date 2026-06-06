@@ -111,7 +111,7 @@ struct CollectorView: View {
                 .controlSize(.small)
             Spacer()
             Button {
-                confirmDelete = true
+                if vm.confirmBeforeDelete { confirmDelete = true } else { vm.deleteCollected() }
             } label: {
                 Label(locf(loc("Move %lld to Trash"), vm.collector.count), systemImage: "trash")
             }

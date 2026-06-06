@@ -6,11 +6,22 @@ import AppKit
 struct ScanProgressView: View {
     @EnvironmentObject var vm: ScanViewModel
 
+    private var progressFraction: Double? {
+        guard vm.expectedBytes > 0, let scanned = vm.scanProgress?.scannedBytes else { return nil }
+        return min(1.0, Double(scanned) / Double(vm.expectedBytes))
+    }
+
     var body: some View {
         VStack(spacing: 22) {
-            ProgressView()
-                .controlSize(.large)
-                .scaleEffect(1.4)
+            if let fraction = progressFraction {
+                ProgressView(value: fraction)
+                    .progressViewStyle(.linear)
+                    .frame(width: 280)
+            } else {
+                ProgressView()
+                    .controlSize(.large)
+                    .scaleEffect(1.4)
+            }
 
             VStack(spacing: 6) {
                 Text(locf(loc("Scanning %@…"), vm.scannedVolume?.name ?? loc("folder")))

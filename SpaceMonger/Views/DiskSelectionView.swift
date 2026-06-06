@@ -1,11 +1,13 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
-/// Start screen: pick a mounted volume or choose any folder to scan. Mirrors
-/// the list of disks with a usage bar per disk.
+/// Start screen: pick a mounted volume or choose any folder to scan. Shows the
+/// list of disks with a usage bar per disk; also accepts dropped folders.
 struct DiskSelectionView: View {
     @EnvironmentObject var vm: ScanViewModel
     @EnvironmentObject var recents: RecentScansStore
+    @State private var dropTargeted = false
 
     private let columns = [GridItem(.adaptive(minimum: 240, maximum: 320), spacing: 16)]
 
@@ -24,6 +26,10 @@ struct DiskSelectionView: View {
                     fullDiskAccessHint
                 }
 
+                if let last = vm.lastCachedScan {
+                    lastScanCard(last)
+                }
+
                 Text("Disks")
                     .font(.headline)
                 LazyVGrid(columns: columns, spacing: 16) {
@@ -40,6 +46,56 @@ struct DiskSelectionView: View {
             .padding(28)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .overlay {
+            if dropTargeted {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [8, 6]))
+                    .padding(8)
+                    .allowsHitTesting(false)
+            }
+        }
+        .onDrop(of: [UTType.fileURL], isTargeted: $dropTargeted) { providers in
+            handleDrop(providers)
+        }
+    }
+
+    private func lastScanCard(_ last: ScanViewModel.CachedScan) -> some View {
+        Button {
+            vm.openLastScan()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "clock.arrow.circlepath").font(.title2).foregroundStyle(.tint)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Continue last scan").font(.callout.weight(.semibold))
+                    Text("\(last.name) · \(last.date.formatted(date: .abbreviated, time: .shortened))")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+            }
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first(where: {
+            $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
+        }) else { return false }
+        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+            var url: URL?
+            if let data = item as? Data { url = URL(dataRepresentation: data, relativeTo: nil) }
+            else if let direct = item as? URL { url = direct }
+            guard let url else { return }
+            var isDir: ObjCBool = false
+            FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir)
+            DispatchQueue.main.async {
+                if isDir.boolValue { vm.scan(folder: url) }
+                else { vm.scan(folder: url.deletingLastPathComponent()) }
+            }
+        }
+        return true
     }
 
     private var fullDiskAccessHint: some View {

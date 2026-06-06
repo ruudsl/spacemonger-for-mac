@@ -15,6 +15,9 @@ struct SpaceMongerApp: App {
         }
         .windowToolbarStyle(.unified)
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { vm.checkForUpdates() }
+            }
             CommandGroup(replacing: .newItem) {
                 Button("Scan Folder…") { chooseFolder() }
                     .keyboardShortcut("o", modifiers: [.command])
@@ -89,6 +92,7 @@ struct SpaceMongerApp: App {
         Settings {
             SettingsView()
                 .environmentObject(vm.excludes)
+                .environmentObject(vm.settings)
         }
     }
 

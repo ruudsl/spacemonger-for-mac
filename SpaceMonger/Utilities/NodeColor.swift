@@ -9,6 +9,13 @@ import SwiftUI
 /// saturated the deeper (further out) they sit.
 enum NodeColor {
 
+    /// Toggled by AppSettings: use a colour-blind-friendly palette.
+    static var colorBlind = false
+
+    /// Okabe–Ito inspired hues that stay distinguishable for common colour
+    /// vision deficiencies.
+    private static let safeHues: [Double] = [0.58, 0.08, 0.45, 0.14, 0.62, 0.02, 0.83, 0.30]
+
     static func color(hue: Double, depth: Int, isHiddenSpace: Bool = false) -> Color {
         if isHiddenSpace {
             return Color(white: 0.55)
@@ -23,6 +30,9 @@ enum NodeColor {
     /// Hue for the `index`-th of `count` siblings on the first ring.
     static func topLevelHue(index: Int, count: Int) -> Double {
         guard count > 0 else { return 0.6 }
+        if colorBlind {
+            return safeHues[index % safeHues.count]
+        }
         // A small offset keeps the first slice off pure red, which reads nicer.
         return (0.58 + Double(index) / Double(count)).truncatingRemainder(dividingBy: 1.0)
     }
@@ -33,13 +43,15 @@ enum NodeColor {
         if ext.isEmpty {
             return Color(white: 0.6)
         }
+        var hasher = 5381
+        for byte in ext.utf8 { hasher = ((hasher << 5) &+ hasher) &+ Int(byte) }
         let hue: Double
-        if let known = knownTypeHues[ext] {
+        if colorBlind {
+            hue = safeHues[abs(hasher) % safeHues.count]
+        } else if let known = knownTypeHues[ext] {
             hue = known
         } else {
             // Deterministic hash -> hue so the same type is always the colour.
-            var hasher = 5381
-            for byte in ext.utf8 { hasher = ((hasher << 5) &+ hasher) &+ Int(byte) }
             hue = Double(abs(hasher) % 360) / 360.0
         }
         return Color(hue: hue, saturation: 0.6, brightness: min(0.95, 0.8 + Double(depth) * 0.03))

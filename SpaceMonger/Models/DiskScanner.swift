@@ -12,6 +12,10 @@ struct DiskScanner {
     /// Item names matching any of these globs are skipped during the scan.
     var exclude = ExcludeMatcher(patterns: [])
 
+    /// Count the target size of symbolic links (still never recurse into them,
+    /// to avoid cycles).
+    var followSymlinks = false
+
     struct Progress {
         var scannedItems: Int
         var scannedBytes: Int64
@@ -21,6 +25,7 @@ struct DiskScanner {
     struct Result {
         var root: FileNode
         var unreadableDirectories: Int
+        var unreadableSample: [String] = []
     }
 
     private static let resourceKeys: Set<URLResourceKey> = [
@@ -55,7 +60,7 @@ struct DiskScanner {
                 at: url, includingPropertiesForKeys: Array(Self.resourceKeys), options: [])
         } catch {
             root.isUnreadable = true
-            return Result(root: root, unreadableDirectories: 1)
+            return Result(root: root, unreadableDirectories: 1, unreadableSample: [url.path])
         }
 
         if isCancelled() { throw CancellationError() }
@@ -71,9 +76,11 @@ struct DiskScanner {
             let values = try? childURL.resourceValues(forKeys: Self.resourceKeys)
 
             if values?.isSymbolicLink == true {
+                let bytes = followSymlinks ? Self.symlinkTargetSize(childURL) : 0
                 topFiles.append(FileNode(url: childURL,
                                          name: values?.name ?? childURL.lastPathComponent,
-                                         kind: .file, size: 0, fileCount: 1))
+                                         kind: .file, size: bytes, fileCount: 1))
+                reporter.add(bytes: bytes, items: 1, path: childURL.path)
                 continue
             }
             if let rootVolumeID,
@@ -127,7 +134,8 @@ struct DiskScanner {
 
         reporter.flush()
         root.sortBySizeDescending(recursive: true)
-        return Result(root: root, unreadableDirectories: unreadable.value)
+        return Result(root: root, unreadableDirectories: unreadable.value,
+                      unreadableSample: unreadable.sample)
     }
 
     // MARK: - Recursion (per worker thread)
@@ -150,7 +158,7 @@ struct DiskScanner {
                 at: url, includingPropertiesForKeys: Array(Self.resourceKeys), options: [])
         } catch {
             directory.isUnreadable = true
-            unreadable.increment()
+            unreadable.add(path: url.path)
             return directory
         }
 
@@ -166,10 +174,13 @@ struct DiskScanner {
             let values = try? childURL.resourceValues(forKeys: Self.resourceKeys)
 
             if values?.isSymbolicLink == true {
+                let bytes = followSymlinks ? Self.symlinkTargetSize(childURL) : 0
                 children.append(FileNode(url: childURL,
                                          name: values?.name ?? childURL.lastPathComponent,
-                                         kind: .file, size: 0, fileCount: 1))
+                                         kind: .file, size: bytes, fileCount: 1))
+                totalSize += bytes
                 totalCount += 1
+                if bytes > 0 { reporter.add(bytes: bytes, items: 1, path: childURL.path) }
                 continue
             }
             if let volumeID,
@@ -210,6 +221,16 @@ struct DiskScanner {
         directory.fileCount = totalCount
         reporter.add(bytes: 0, items: 1, path: url.path)
         return directory
+    }
+
+    /// Size of a symlink's target file (0 for directory targets, which we never
+    /// follow, or unreadable targets).
+    static func symlinkTargetSize(_ url: URL) -> Int64 {
+        let resolved = url.resolvingSymlinksInPath()
+        guard let values = try? resolved.resourceValues(forKeys: [
+            .isRegularFileKey, .totalFileAllocatedSizeKey, .fileAllocatedSizeKey, .fileSizeKey
+        ]) else { return 0 }
+        return values.isRegularFile == true ? allocatedSize(values) : 0
     }
 
     static func allocatedSize(_ values: URLResourceValues?) -> Int64 {
@@ -262,8 +283,15 @@ private final class ScanReporter {
 private final class UnreadableCounter {
     private let lock = NSLock()
     private var count = 0
-    func increment() { lock.lock(); count += 1; lock.unlock() }
+    private var samples: [String] = []
+    func add(path: String) {
+        lock.lock()
+        count += 1
+        if samples.count < 5 { samples.append(path) }
+        lock.unlock()
+    }
     var value: Int { lock.lock(); defer { lock.unlock() }; return count }
+    var sample: [String] { lock.lock(); defer { lock.unlock() }; return samples }
 }
 
 private final class ParallelResults {

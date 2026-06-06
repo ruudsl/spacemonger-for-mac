@@ -50,6 +50,12 @@ final class ScanViewModel: ObservableObject {
     @Published var volumes: [VolumeInfo] = []
     let recentScans = RecentScansStore()
     let excludes = ExcludeStore()
+    let settings = AppSettings()
+
+    init() {
+        if let mode = ViewMode(rawValue: settings.defaultViewModeRaw) { viewMode = mode }
+        if let mode = ColorMode(rawValue: settings.defaultColorModeRaw) { colorMode = mode }
+    }
 
     // Save / load / compare
     @Published var comparison: ScanComparison?
@@ -60,6 +66,7 @@ final class ScanViewModel: ObservableObject {
 
     // Snapshots / purgeable space
     @Published var showSnapshots = false
+    @Published var updateMessage: String?
     @Published private(set) var snapshots: [SnapshotManager.LocalSnapshot] = []
     @Published private(set) var purgeableBytes: Int64 = 0
     @Published private(set) var isWorkingSnapshots = false
@@ -76,8 +83,15 @@ final class ScanViewModel: ObservableObject {
 
     // Diagnostics
     @Published private(set) var unreadableDirectories = 0
+    @Published private(set) var unreadableSample: [String] = []
     @Published private(set) var hasFullDiskAccess = true
     @Published var accessBannerDismissed = false
+
+    // Auto-cached last scan
+    struct CachedScan { var name: String; var date: Date; var url: URL }
+    @Published private(set) var lastCachedScan: CachedScan?
+
+    var confirmBeforeDelete: Bool { settings.confirmBeforeDelete }
 
     var shouldShowAccessBanner: Bool {
         guard !accessBannerDismissed else { return false }
@@ -91,6 +105,8 @@ final class ScanViewModel: ObservableObject {
     @Published private(set) var scanProgress: DiskScanner.Progress?
     @Published private(set) var scannedVolume: VolumeInfo?
     @Published private(set) var scanSummary: String?
+    /// Best-effort total to scan (volume used space), for a determinate bar.
+    @Published private(set) var expectedBytes: Int64 = 0
 
     // The tree and navigation
     @Published private(set) var rootNode: FileNode?
@@ -123,6 +139,45 @@ final class ScanViewModel: ObservableObject {
     func loadVolumes() {
         volumes = VolumeInfo.mountedVolumes()
         hasFullDiskAccess = DiskAccess.hasFullDiskAccess()
+        loadCachedScanInfo()
+    }
+
+    // MARK: - Auto-cached last scan
+
+    private var cacheURL: URL? {
+        let fm = FileManager.default
+        guard let base = try? fm.url(for: .applicationSupportDirectory, in: .userDomainMask,
+                                     appropriateFor: nil, create: true) else { return nil }
+        let dir = base.appendingPathComponent("SpaceMonger", isDirectory: true)
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("last-scan.smscan")
+    }
+
+    private func loadCachedScanInfo() {
+        guard let url = cacheURL, FileManager.default.fileExists(atPath: url.path),
+              let name = UserDefaults.standard.string(forKey: "lastScanName") else {
+            lastCachedScan = nil
+            return
+        }
+        let date = UserDefaults.standard.object(forKey: "lastScanDate") as? Date ?? Date()
+        lastCachedScan = CachedScan(name: name, date: date, url: url)
+    }
+
+    func openLastScan() {
+        guard let cached = lastCachedScan else { return }
+        openScan(from: cached.url)
+    }
+
+    private func cacheScan(root: FileNode, name: String) {
+        // Skip very large trees — archiving them is expensive.
+        guard root.fileCount <= 200_000, let url = cacheURL else { return }
+        let date = Date()
+        UserDefaults.standard.set(name, forKey: "lastScanName")
+        UserDefaults.standard.set(date, forKey: "lastScanDate")
+        lastCachedScan = CachedScan(name: name, date: date, url: url)
+        DispatchQueue.global(qos: .utility).async {
+            try? ScanArchive(root: root, displayName: name).write(to: url)
+        }
     }
 
     // MARK: - Scanning
@@ -182,6 +237,7 @@ final class ScanViewModel: ObservableObject {
         scannedVolume = volume
         scannedURL = url
         scanProgress = nil
+        expectedBytes = volume?.usedCapacity ?? 0
         scanState = .scanning
 
         let displayName = volume?.name ?? (url.lastPathComponent.isEmpty ? url.path : url.lastPathComponent)
@@ -190,6 +246,7 @@ final class ScanViewModel: ObservableObject {
         let token = CancelToken()
         cancelToken = token
         let matcher = ExcludeMatcher(patterns: excludes.patterns)
+        let followSymlinks = settings.followSymlinks
         let start = Date()
 
         scanTask = Task.detached(priority: .userInitiated) {
@@ -210,7 +267,8 @@ final class ScanViewModel: ObservableObject {
                     )
                     result = DiskScanner.Result(root: root, unreadableDirectories: 0)
                 } else {
-                    let scanner = DiskScanner(exclude: matcher)
+                    var scanner = DiskScanner(exclude: matcher)
+                    scanner.followSymlinks = followSymlinks
                     result = try scanner.scan(
                         at: url,
                         isCancelled: { token.isCancelled },
@@ -279,10 +337,12 @@ final class ScanViewModel: ObservableObject {
         focusNode = root
         selectedNode = nil
         unreadableDirectories = result.unreadableDirectories
+        unreadableSample = result.unreadableSample
         hasFullDiskAccess = DiskAccess.hasFullDiskAccess()
         scanState = .done
         rebuildSunburst()
         recomputeFocusMatches()
+        cacheScan(root: root, name: volume?.name ?? root.name)
 
         let count = scanProgress?.scannedItems ?? root.fileCount
         scanSummary = locf(loc("%@ items · %@ · scanned in %@s"),
@@ -542,6 +602,25 @@ final class ScanViewModel: ObservableObject {
     func openSnapshots() {
         showSnapshots = true
         loadSnapshots()
+    }
+
+    func checkForUpdates() {
+        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        Task {
+            let latest = await UpdateChecker.latestVersion()
+            DispatchQueue.main.async {
+                guard let latest else {
+                    self.updateMessage = loc("Couldn't check for updates.")
+                    return
+                }
+                let norm = UpdateChecker.normalized(latest)
+                if norm.compare(current, options: .numeric) == .orderedDescending {
+                    self.updateMessage = locf(loc("Version %@ is available. You have %@."), norm, current)
+                } else {
+                    self.updateMessage = loc("You're up to date.")
+                }
+            }
+        }
     }
 
     func loadSnapshots() {

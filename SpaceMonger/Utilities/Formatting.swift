@@ -1,9 +1,19 @@
 import Foundation
 
 enum Formatting {
-    private static let byteFormatter: ByteCountFormatter = {
+    /// Toggled by AppSettings: base-1024 vs base-1000.
+    static var useBinaryUnits = false
+
+    private static let fileFormatter: ByteCountFormatter = {
         let f = ByteCountFormatter()
         f.countStyle = .file        // base-1000, matches Finder
+        f.allowsNonnumericFormatting = true
+        return f
+    }()
+
+    private static let binaryFormatter: ByteCountFormatter = {
+        let f = ByteCountFormatter()
+        f.countStyle = .binary      // base-1024
         f.allowsNonnumericFormatting = true
         return f
     }()
@@ -22,7 +32,7 @@ enum Formatting {
     }()
 
     static func bytes(_ value: Int64) -> String {
-        byteFormatter.string(fromByteCount: value)
+        (useBinaryUnits ? binaryFormatter : fileFormatter).string(fromByteCount: value)
     }
 
     static func percent(_ fraction: Double) -> String {

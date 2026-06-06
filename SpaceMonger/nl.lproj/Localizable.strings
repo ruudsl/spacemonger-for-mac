@@ -193,3 +193,23 @@
 "Re-check" = "Opnieuw controleren";
 "Open Full Disk Access Settings…" = "Open instellingen voor Volledige schijftoegang…";
 "After adding SpaceMonger in System Settings, return here and click Re-check (you may need to relaunch the app)." = "Nadat je SpaceMonger in Systeeminstellingen hebt toegevoegd, kom je hier terug en klik je op Opnieuw controleren (mogelijk moet je de app opnieuw starten).";
+
+/* Instellingen (algemeen), startscherm, updates */
+"General" = "Algemeen";
+"Size units" = "Eenheden";
+"Decimal (1000)" = "Decimaal (1000)";
+"Binary (1024)" = "Binair (1024)";
+"Default layout" = "Standaardweergave";
+"Default colours" = "Standaardkleuren";
+"Follow symbolic links" = "Symbolische koppelingen volgen";
+"Confirm before deleting" = "Bevestigen vóór verwijderen";
+"Colour-blind palette" = "Kleurenblind palet";
+"Import…" = "Importeer…";
+"Export…" = "Exporteer…";
+"Continue last scan" = "Laatste scan voortzetten";
+"e.g. %@" = "bijv. %@";
+"Software Update" = "Software-update";
+"Check for Updates…" = "Controleer op updates…";
+"Couldn't check for updates." = "Kon niet op updates controleren.";
+"You're up to date." = "Je bent up-to-date.";
+"Version %@ is available. You have %@." = "Versie %@ is beschikbaar. Jij hebt %@.";

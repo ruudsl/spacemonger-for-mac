@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Presents the diff between the current scan and a previously saved one.
 struct ComparisonView: View {
@@ -36,10 +37,33 @@ struct ComparisonView: View {
                     .foregroundStyle(delta == 0 ? Color.secondary : (delta > 0 ? Color.red : Color.green))
             }
             Spacer()
-            Button(loc("Done"), action: onClose)
-                .keyboardShortcut(.defaultAction)
+            VStack(alignment: .trailing, spacing: 6) {
+                Button(loc("Done"), action: onClose)
+                    .keyboardShortcut(.defaultAction)
+                Button(loc("Export…"), action: exportCSV)
+            }
         }
         .padding(16)
+    }
+
+    private func exportCSV() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "Comparison.csv"
+        panel.allowedContentTypes = [.commaSeparatedText]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        var rows = ["change,delta_bytes,size_bytes,path"]
+        func append(_ entries: [ScanComparison.Entry], _ label: String) {
+            for e in entries {
+                let path = e.path.replacingOccurrences(of: "\"", with: "\"\"")
+                rows.append("\(label),\(e.delta),\(e.size),\"\(path)\"")
+            }
+        }
+        append(comparison.grown, "grown")
+        append(comparison.added, "added")
+        append(comparison.shrunk, "shrunk")
+        append(comparison.removed, "removed")
+        try? rows.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
     }
 
     @ViewBuilder

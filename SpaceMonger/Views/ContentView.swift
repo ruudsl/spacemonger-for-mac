@@ -44,6 +44,14 @@ struct ContentView: View {
         } message: {
             Text(vm.lastError ?? "")
         }
+        .alert("Software Update",
+               isPresented: Binding(
+                get: { vm.updateMessage != nil },
+                set: { if !$0 { vm.updateMessage = nil } })) {
+            Button("OK", role: .cancel) { vm.updateMessage = nil }
+        } message: {
+            Text(vm.updateMessage ?? "")
+        }
     }
 }
 
@@ -166,6 +174,13 @@ private struct AccessBanner: View {
                 Text("Grant Full Disk Access to measure system files instead of lumping them into “System & hidden space”.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if let example = vm.unreadableSample.first {
+                    Text(locf(loc("e.g. %@"), example))
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
             }
             Spacer()
             Button("Scan as Administrator") { vm.rescanAsAdministrator() }
