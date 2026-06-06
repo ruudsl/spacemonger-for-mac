@@ -24,7 +24,14 @@ struct BreadcrumbView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                if let summary = vm.scanSummary {
+                if let hovered = vm.hoveredNode, hovered.isRealFileSystemItem {
+                    Text("·  \(hovered.url.path)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .padding(.leading, 8)
+                } else if let summary = vm.scanSummary {
                     Text("·  \(summary)")
                         .font(.caption)
                         .foregroundStyle(.tertiary)

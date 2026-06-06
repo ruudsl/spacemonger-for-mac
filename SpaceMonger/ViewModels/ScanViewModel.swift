@@ -113,6 +113,8 @@ final class ScanViewModel: ObservableObject {
     @Published private(set) var focusNode: FileNode?
     @Published var selectedNode: FileNode?
     @Published var hoveredNode: FileNode?
+    /// Multi-selection in the contents list (by node id).
+    @Published var listSelection: Set<UUID> = []
     @Published private(set) var sunburstLayout: SunburstLayout?
 
     // The collector
@@ -371,6 +373,13 @@ final class ScanViewModel: ObservableObject {
 
     func select(_ node: FileNode?) {
         selectedNode = node
+        listSelection = node.map { [$0.id] } ?? []
+    }
+
+    /// Nodes currently multi-selected in the contents list.
+    func selectedListNodes() -> [FileNode] {
+        guard let kids = focusNode?.children else { return [] }
+        return kids.filter { listSelection.contains($0.id) }
     }
 
     func drill(into node: FileNode) {
@@ -379,6 +388,7 @@ final class ScanViewModel: ObservableObject {
         focusNode = node
         selectedNode = node
         hoveredNode = nil
+        listSelection = []
         rebuildSunburst()
     }
 
@@ -387,6 +397,7 @@ final class ScanViewModel: ObservableObject {
         focusNode = parent
         selectedNode = parent
         hoveredNode = nil
+        listSelection = []
         rebuildSunburst()
     }
 
@@ -394,6 +405,7 @@ final class ScanViewModel: ObservableObject {
         focusNode = node
         selectedNode = node
         hoveredNode = nil
+        listSelection = []
         rebuildSunburst()
     }
 
@@ -466,6 +478,10 @@ final class ScanViewModel: ObservableObject {
     func addToCollector(_ node: FileNode) {
         guard node.isRealFileSystemItem, !isInCollector(node) else { return }
         collector.append(node)
+    }
+
+    func addToCollector(_ nodes: [FileNode]) {
+        for node in nodes { addToCollector(node) }
     }
 
     func removeFromCollector(_ node: FileNode) {
@@ -676,6 +692,10 @@ final class ScanViewModel: ObservableObject {
 
     func trash(_ node: FileNode) {
         trashNodes([node])
+    }
+
+    func trash(_ nodes: [FileNode]) {
+        trashNodes(nodes)
     }
 
     func deleteCollected() {

@@ -1,10 +1,12 @@
 import SwiftUI
+import AppKit
 
 /// The contents of the focused folder as a sortable, size-ranked list. Rows are
-/// colour-matched to the map, can be dragged into the Collector, and expose the
-/// same actions via a context menu. A search field filters the list.
+/// colour-matched to the map, support ⌘/⇧ multi-selection, can be dragged into
+/// the Collector, and expose actions via a context menu. A search field filters.
 struct FileListView: View {
     @EnvironmentObject var vm: ScanViewModel
+    @State private var anchorID: UUID?
 
     private var children: [FileNode] {
         _ = vm.revision   // re-read after in-place mutations
@@ -51,11 +53,40 @@ struct FileListView: View {
                             FileRow(node: node,
                                     hue: hues[node.id] ?? 0.6,
                                     fraction: node.fraction(of: vm.focusNode ?? node),
-                                    isSelected: vm.selectedNode?.id == node.id)
+                                    isSelected: isSelected(node),
+                                    onTap: { handleTap(node) })
                         }
                     }
                 }
             }
+        }
+    }
+
+    private func isSelected(_ node: FileNode) -> Bool {
+        vm.listSelection.contains(node.id) || vm.selectedNode?.id == node.id
+    }
+
+    /// Modifier-aware selection: ⌘ toggles, ⇧ extends a range, plain click sets.
+    private func handleTap(_ node: FileNode) {
+        let flags = NSEvent.modifierFlags
+        if flags.contains(.command) {
+            if vm.listSelection.contains(node.id) {
+                vm.listSelection.remove(node.id)
+            } else {
+                vm.listSelection.insert(node.id)
+            }
+            anchorID = node.id
+            vm.selectedNode = node
+        } else if flags.contains(.shift),
+                  let anchor = anchorID,
+                  let a = children.firstIndex(where: { $0.id == anchor }),
+                  let b = children.firstIndex(where: { $0.id == node.id }) {
+            let range = a <= b ? a...b : b...a
+            vm.listSelection = Set(children[range].map(\.id))
+            vm.selectedNode = node
+        } else {
+            vm.select(node)
+            anchorID = node.id
         }
     }
 
@@ -85,6 +116,7 @@ private struct FileRow: View {
     let hue: Double
     let fraction: Double
     let isSelected: Bool
+    let onTap: () -> Void
 
     private var color: Color { vm.color(for: node, hue: hue, depth: 0) }
 
@@ -130,13 +162,13 @@ private struct FileRow: View {
         .background(isSelected ? Color.accentColor.opacity(0.18) : Color.clear)
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
-            if node.isDirectory { vm.drill(into: node) } else { vm.select(node) }
+            if node.isDirectory { vm.drill(into: node) } else { onTap() }
         }
         .onTapGesture {
-            vm.select(node)
+            onTap()
         }
         .onDrag {
-            vm.select(node)
+            if !vm.listSelection.contains(node.id) { onTap() }
             if node.isRealFileSystemItem {
                 return NSItemProvider(object: node.url as NSURL)
             }
@@ -145,9 +177,17 @@ private struct FileRow: View {
         .contextMenu { contextMenu }
     }
 
+    private var isMultiSelection: Bool {
+        vm.listSelection.count > 1 && vm.listSelection.contains(node.id)
+    }
+
     @ViewBuilder
     private var contextMenu: some View {
-        if node.isRealFileSystemItem {
+        if isMultiSelection {
+            let nodes = vm.selectedListNodes()
+            Button(locf(loc("Add %lld to Collector"), nodes.count)) { vm.addToCollector(nodes) }
+            Button(locf(loc("Move %lld to Trash"), nodes.count), role: .destructive) { vm.trash(nodes) }
+        } else if node.isRealFileSystemItem {
             Button("Quick Look") { vm.quickLook(node) }
             Button("Open") { vm.open(node) }
             Menu("Open With") {

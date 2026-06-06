@@ -69,10 +69,23 @@ struct TreemapView: View {
                 color = color.opacity(0.12)
             }
 
-            // Leaves are filled solid; directories are mostly covered by their
-            // children, so a lighter fill reads as a subtle container background.
-            let fill = tile.node.isLeaf ? color : color.opacity(0.25)
-            context.fill(path, with: .color(fill))
+            if tile.node.isLeaf {
+                // Solid fill plus a diagonal light→dark sheen for a "cushion" look.
+                context.fill(path, with: .color(color))
+                let sheen = Gradient(stops: [
+                    .init(color: .white.opacity(0.30), location: 0.0),
+                    .init(color: .clear, location: 0.5),
+                    .init(color: .black.opacity(0.22), location: 1.0)
+                ])
+                context.fill(path, with: .linearGradient(
+                    sheen,
+                    startPoint: CGPoint(x: tile.rect.minX, y: tile.rect.minY),
+                    endPoint: CGPoint(x: tile.rect.maxX, y: tile.rect.maxY)))
+            } else {
+                // Directories are mostly covered by their children, so a lighter
+                // fill reads as a subtle container background.
+                context.fill(path, with: .color(color.opacity(0.25)))
+            }
             context.stroke(path, with: .color(Color.black.opacity(0.22)), lineWidth: 0.5)
 
             if tile.node.id == hoveredID {
