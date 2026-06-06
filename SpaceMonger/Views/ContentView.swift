@@ -37,11 +37,20 @@ private struct ResultsView: View {
         VStack(spacing: 0) {
             ResultsToolbar()
             Divider()
+            if vm.shouldShowAccessBanner {
+                AccessBanner()
+                Divider()
+            }
             HSplitView {
-                SunburstView(vm: vm)
-                    .frame(minWidth: 420)
-                    .padding(12)
-                    .layoutPriority(1)
+                Group {
+                    switch vm.viewMode {
+                    case .sunburst: SunburstView(vm: vm)
+                    case .treemap:  TreemapView(vm: vm)
+                    }
+                }
+                .frame(minWidth: 420)
+                .padding(12)
+                .layoutPriority(1)
 
                 DetailPanel()
                     .frame(minWidth: 280, idealWidth: 340, maxWidth: 460)
@@ -69,6 +78,30 @@ private struct ResultsToolbar: View {
 
             Spacer()
 
+            Picker("", selection: $vm.viewMode) {
+                ForEach(ScanViewModel.ViewMode.allCases) { mode in
+                    Image(systemName: mode.symbol).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 92)
+            .help("Switch between Sunburst and Treemap")
+
+            Menu {
+                Picker("Colour", selection: $vm.colorMode) {
+                    ForEach(ScanViewModel.ColorMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.inline)
+            } label: {
+                Image(systemName: "paintpalette")
+            }
+            .menuStyle(.borderlessButton)
+            .frame(width: 44)
+            .help("Colour mode")
+
             Button {
                 vm.rescan()
             } label: {
@@ -79,6 +112,35 @@ private struct ResultsToolbar: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
+    }
+}
+
+/// Banner shown after a scan when system folders were unreadable, nudging the
+/// user toward Full Disk Access so the "System & hidden space" shrinks.
+private struct AccessBanner: View {
+    @EnvironmentObject var vm: ScanViewModel
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "lock.shield")
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Some system folders couldn't be read")
+                    .font(.callout.weight(.semibold))
+                Text("Grant Full Disk Access to measure system files instead of lumping them into “System & hidden space”.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Open Settings…") { DiskAccess.openFullDiskAccessSettings() }
+            Button {
+                vm.dismissAccessBanner()
+            } label: { Image(systemName: "xmark") }
+            .buttonStyle(.borderless)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(Color.orange.opacity(0.10))
     }
 }
 

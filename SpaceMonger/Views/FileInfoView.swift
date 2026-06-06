@@ -38,6 +38,11 @@ struct FileInfoView: View {
                      : node.isDirectory ? "Folder" : "File")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if node.isUnreadable {
+                    Label("Couldn't read — needs Full Disk Access", systemImage: "lock.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
             }
             Spacer(minLength: 0)
         }
@@ -92,11 +97,23 @@ struct FileInfoView: View {
         HStack(spacing: 8) {
             Button {
                 vm.quickLook(node)
-            } label: { Label("Quick Look", systemImage: "eye") }
+            } label: { Image(systemName: "eye") }
+            .help("Quick Look")
 
             Button {
                 vm.reveal(node)
-            } label: { Label("Reveal", systemImage: "magnifyingglass") }
+            } label: { Image(systemName: "magnifyingglass") }
+            .help("Reveal in Finder")
+
+            Button {
+                vm.open(node)
+            } label: { Image(systemName: "arrow.up.forward.app") }
+            .help("Open")
+
+            Button {
+                vm.copyPath(node)
+            } label: { Image(systemName: "doc.on.doc") }
+            .help("Copy Path")
 
             Spacer()
 

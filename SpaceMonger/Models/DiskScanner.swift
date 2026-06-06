@@ -13,6 +13,13 @@ struct DiskScanner {
         var currentPath: String
     }
 
+    struct Result {
+        var root: FileNode
+        /// Number of directories whose contents could not be read (permission
+        /// denied) — a hint that Full Disk Access is needed.
+        var unreadableDirectories: Int
+    }
+
     private static let resourceKeys: Set<URLResourceKey> = [
         .isDirectoryKey,
         .isRegularFileKey,
@@ -34,10 +41,11 @@ struct DiskScanner {
     ///   - progress: called periodically (throttled) on an arbitrary thread.
     func scan(at url: URL,
               isCancelled: () -> Bool,
-              progress: @escaping (Progress) -> Void) throws -> FileNode {
+              progress: @escaping (Progress) -> Void) throws -> Result {
 
         let fm = FileManager.default
         var counter = ScanCounter(progress: progress)
+        var unreadable = 0
 
         // Identify the volume we start on so we never cross into other mounts.
         let rootValues = try? url.resourceValues(forKeys: [.volumeIdentifierKey])
@@ -48,11 +56,12 @@ struct DiskScanner {
             volumeID: rootVolumeID,
             fileManager: fm,
             isCancelled: isCancelled,
-            counter: &counter
+            counter: &counter,
+            unreadable: &unreadable
         )
         counter.flush(force: true)
         node.sortBySizeDescending(recursive: true)
-        return node
+        return Result(root: node, unreadableDirectories: unreadable)
     }
 
     // MARK: - Recursion
@@ -61,7 +70,8 @@ struct DiskScanner {
                                volumeID: NSObject?,
                                fileManager fm: FileManager,
                                isCancelled: () -> Bool,
-                               counter: inout ScanCounter) throws -> FileNode {
+                               counter: inout ScanCounter,
+                               unreadable: inout Int) throws -> FileNode {
 
         if isCancelled() { throw CancellationError() }
 
@@ -76,7 +86,10 @@ struct DiskScanner {
                 options: []
             )
         } catch {
-            // No permission / vanished: treat as an empty, zero-sized folder.
+            // No permission / vanished: treat as an empty folder, but flag it so
+            // the UI can hint at Full Disk Access.
+            directory.isUnreadable = true
+            unreadable += 1
             return directory
         }
 
@@ -118,7 +131,8 @@ struct DiskScanner {
                     volumeID: volumeID,
                     fileManager: fm,
                     isCancelled: isCancelled,
-                    counter: &counter
+                    counter: &counter,
+                    unreadable: &unreadable
                 )
                 // Mark packages so the UI can show them as app-like leaves while
                 // still allowing the user to drill inside.

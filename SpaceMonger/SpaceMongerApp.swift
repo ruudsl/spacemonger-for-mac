@@ -9,6 +9,7 @@ struct SpaceMongerApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(vm)
+                .environmentObject(vm.recentScans)
                 .frame(minWidth: 900, minHeight: 600)
         }
         .windowToolbarStyle(.unified)
@@ -20,14 +21,37 @@ struct SpaceMongerApp: App {
                     .keyboardShortcut("r", modifiers: [.command])
                     .disabled(vm.rescanDisabled)
             }
+            CommandMenu("View") {
+                Picker("Layout", selection: $vm.viewMode) {
+                    ForEach(ScanViewModel.ViewMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                Divider()
+                Picker("Colour", selection: $vm.colorMode) {
+                    ForEach(ScanViewModel.ColorMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+            }
             CommandMenu("Item") {
                 Button("Quick Look") { vm.quickLook(vm.selectedNode) }
                     .keyboardShortcut("y", modifiers: [.command])
                     .disabled(vm.selectedNode == nil)
+                Button("Open") {
+                    if let node = vm.selectedNode { vm.open(node) }
+                }
+                .keyboardShortcut("o", modifiers: [.command, .shift])
+                .disabled(vm.selectedNode == nil)
                 Button("Reveal in Finder") {
                     if let node = vm.selectedNode { vm.reveal(node) }
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
+                .disabled(vm.selectedNode == nil)
+                Button("Copy Path") {
+                    if let node = vm.selectedNode { vm.copyPath(node) }
+                }
+                .keyboardShortcut("c", modifiers: [.command, .shift])
                 .disabled(vm.selectedNode == nil)
                 Divider()
                 Button("Add to Collector") {

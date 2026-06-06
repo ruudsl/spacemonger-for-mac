@@ -29,13 +29,31 @@ Modelled after the DaisyDisk user guide:
 | Reveal in Finder | From the info panel, context menu, or ⇧⌘R |
 | Quick Look | Space-style preview via the info panel, context menu, or ⌘Y |
 | Hidden / system space | A grey "System & hidden space" segment accounts for volume space not attributable to readable files |
+| Scanning system files | Detects missing **Full Disk Access**, flags unreadable folders with a lock badge, and offers a one-click button to open the right Settings pane |
+| Recent scans | The start screen remembers recent disks/folders as **security-scoped bookmarks** so you can re-scan in one click |
+
+### Beyond DaisyDisk — features inspired by [GrandPerspective](https://grandperspectiv.sourceforge.net/)
+
+| GrandPerspective concept | In SpaceMonger |
+| --- | --- |
+| Treemap view | A squarified **Treemap** layout, switchable with the Sunburst (⌘1 / ⌘2) |
+| Colour by file type / depth | Colour modes: **By Folder**, **By File Type**, **By Depth** |
+| Filtering | A live **Filter** field over the folder contents |
+| Reveal / Open / Copy path | All available from the info panel and context menu |
+| Delete to Trash | Single items or the whole Collector |
+
+Not yet implemented from GrandPerspective (candidates for later): saving/loading
+scan files (`.gpscan`), comparing two scans, and advanced focus masks.
 
 ### Keyboard shortcuts
 
 - **⌘O** – Scan a folder…
 - **⌘R** – Rescan
+- **⌘1 / ⌘2** – Sunburst / Treemap view
 - **⌘Y** – Quick Look the selection
+- **⇧⌘O** – Open the selection
 - **⇧⌘R** – Reveal the selection in Finder
+- **⇧⌘C** – Copy the selection's path
 - **⌘D** – Add the selection to the Collector
 - **⌘⌫** – Move the selection to the Trash
 
@@ -81,11 +99,16 @@ SpaceMonger/
     FileNode.swift            The scanned file tree (sizes, children, parent)
     VolumeInfo.swift          Mounted-volume discovery for the start screen
     DiskScanner.swift         Recursive, cancellable on-disk size measurement
+    RecentScan.swift          A remembered location (security-scoped bookmark)
   ViewModels/
     ScanViewModel.swift       App state: scan lifecycle, navigation, collector
+    RecentScansStore.swift    Persists & resolves recent scans
   Sunburst/
     SunburstLayout.swift      Pure geometry: segments + hit-testing
     SunburstView.swift        Canvas rendering & pointer interaction
+  Treemap/
+    TreemapLayout.swift       Squarified treemap geometry + hit-testing
+    TreemapView.swift         Canvas rendering & pointer interaction
   Views/
     ContentView.swift         Top-level layout (start / scanning / results)
     DiskSelectionView.swift   Start screen
@@ -96,9 +119,13 @@ SpaceMonger/
     CollectorView.swift       Drop target + "move to Trash"
   Utilities/
     Formatting.swift          Byte / percent / count formatting
-    NodeColor.swift           Shared colour scheme
+    NodeColor.swift           Shared colour scheme (folder / type / depth)
     FinderActions.swift       Reveal in Finder / move to Trash
     QuickLookController.swift  Quick Look panel
+    DiskAccess.swift          Full Disk Access detection & Settings deep-link
+  en.lproj / nl.lproj         Localized UI strings (English + Dutch)
+tools/
+  make_icon.py                Generates the app icon PNGs (pure stdlib)
 ```
 
 ## How sizing works
@@ -109,11 +136,16 @@ crosses into other mounted volumes, so figures stay accurate.
 
 ## Roadmap / ideas
 
-- App icon and polished artwork
-- Remembering recent scans and security-scoped bookmarks
-- A proper treemap view as an alternative to the sunburst
-- Exclude lists and filters
-- Localisation (the UI strings are English today)
+Done since the first version: app icon, recent scans (security-scoped
+bookmarks), treemap view, colour-by-type/depth, content filter, Full Disk Access
+flow, and Dutch localisation.
+
+Still on the list:
+
+- A bundled privileged helper to read the few remaining root-only files
+- Saving / loading and comparing scans (GrandPerspective `.gpscan`)
+- Exclude lists / focus masks
+- More complete localisation of dynamic strings
 
 ## License
 

@@ -26,6 +26,9 @@ final class FileNode: Identifiable, Hashable {
     var size: Int64
     /// Number of files contained (self counts as 1 for a file).
     var fileCount: Int
+    /// `true` for a directory whose contents could not be listed (no
+    /// permission). Usually fixed by granting Full Disk Access.
+    var isUnreadable: Bool = false
 
     private(set) var children: [FileNode]
     weak var parent: FileNode?
@@ -50,6 +53,13 @@ final class FileNode: Identifiable, Hashable {
     var isDirectory: Bool { kind == .directory }
     var isHiddenSpace: Bool { kind == .hiddenSpace }
     var isLeaf: Bool { children.isEmpty }
+
+    /// Lowercased file extension, or "" for folders / no extension. Used for the
+    /// "colour by file type" mode.
+    var fileExtension: String {
+        guard kind == .file else { return "" }
+        return url.pathExtension.lowercased()
+    }
 
     /// Whether this node maps to a real on-disk item that can be revealed,
     /// previewed or trashed.

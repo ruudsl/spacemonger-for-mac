@@ -1,21 +1,21 @@
 import SwiftUI
 
 /// The contents of the focused folder as a sortable, size-ranked list. Rows are
-/// colour-matched to the sunburst, can be dragged into the Collector, and expose
-/// the same actions via a context menu.
+/// colour-matched to the map, can be dragged into the Collector, and expose the
+/// same actions via a context menu. A search field filters the list.
 struct FileListView: View {
     @EnvironmentObject var vm: ScanViewModel
 
     private var children: [FileNode] {
         _ = vm.revision   // re-read after in-place mutations
-        return vm.focusNode?.children ?? []
+        return vm.filteredChildren
     }
 
-    /// Colour lookup that matches the sunburst's first ring exactly.
-    private var colors: [UUID: Color] {
-        var map: [UUID: Color] = [:]
+    /// Inherited top-level hues that match the map's first ring exactly.
+    private var hues: [UUID: Double] {
+        var map: [UUID: Double] = [:]
         for segment in vm.sunburstLayout?.segments ?? [] where segment.depth == 0 {
-            map[segment.node.id] = segment.color
+            map[segment.node.id] = segment.hue
         }
         return map
     }
@@ -31,13 +31,16 @@ struct FileListView: View {
                     .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.top, 8)
+            .padding(.bottom, 6)
+
+            searchField
 
             Divider()
 
             if children.isEmpty {
                 Spacer()
-                Text("This folder is empty")
+                Text(vm.searchText.isEmpty ? "This folder is empty" : "No matching items")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                 Spacer()
@@ -46,7 +49,7 @@ struct FileListView: View {
                     LazyVStack(spacing: 0) {
                         ForEach(children) { node in
                             FileRow(node: node,
-                                    color: colors[node.id] ?? Color.gray,
+                                    hue: hues[node.id] ?? 0.6,
                                     fraction: node.fraction(of: vm.focusNode ?? node),
                                     isSelected: vm.selectedNode?.id == node.id)
                         }
@@ -55,14 +58,35 @@ struct FileListView: View {
             }
         }
     }
+
+    private var searchField: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+                .font(.caption)
+            TextField("Filter", text: $vm.searchText)
+                .textFieldStyle(.plain)
+                .font(.callout)
+            if !vm.searchText.isEmpty {
+                Button { vm.searchText = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.bottom, 8)
+    }
 }
 
 private struct FileRow: View {
     @EnvironmentObject var vm: ScanViewModel
     let node: FileNode
-    let color: Color
+    let hue: Double
     let fraction: Double
     let isSelected: Bool
+
+    private var color: Color { vm.color(for: node, hue: hue, depth: 0) }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -75,6 +99,12 @@ private struct FileRow: View {
                     Text(node.name)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                    if node.isUnreadable {
+                        Image(systemName: "lock.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                            .help("Couldn't read this folder — grant Full Disk Access")
+                    }
                     if node.isDirectory && !node.isHiddenSpace {
                         Image(systemName: "chevron.right")
                             .font(.caption2)
@@ -119,7 +149,9 @@ private struct FileRow: View {
     private var contextMenu: some View {
         if node.isRealFileSystemItem {
             Button("Quick Look") { vm.quickLook(node) }
+            Button("Open") { vm.open(node) }
             Button("Reveal in Finder") { vm.reveal(node) }
+            Button("Copy Path") { vm.copyPath(node) }
             if node.isDirectory && !node.children.isEmpty {
                 Button("Zoom In") { vm.drill(into: node) }
             }

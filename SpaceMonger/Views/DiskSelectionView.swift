@@ -5,6 +5,7 @@ import AppKit
 /// DaisyDisk's disk list with a usage bar per disk.
 struct DiskSelectionView: View {
     @EnvironmentObject var vm: ScanViewModel
+    @EnvironmentObject var recents: RecentScansStore
 
     private let columns = [GridItem(.adaptive(minimum: 240, maximum: 320), spacing: 16)]
 
@@ -19,16 +20,65 @@ struct DiskSelectionView: View {
                         .padding(.bottom, 4)
                 }
 
+                if !vm.hasFullDiskAccess {
+                    fullDiskAccessHint
+                }
+
+                Text("Disks")
+                    .font(.headline)
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(vm.volumes) { volume in
                         DiskCard(volume: volume) { vm.scan(volume: volume) }
                     }
                     ChooseFolderCard { chooseFolder() }
                 }
+
+                if !recents.items.isEmpty {
+                    recentSection
+                }
             }
             .padding(28)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+    }
+
+    private var fullDiskAccessHint: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "lock.shield.fill")
+                .font(.title2)
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Enable Full Disk Access to scan system files")
+                    .font(.callout.weight(.semibold))
+                Text("Without it, system and other users' folders read as empty and show up as “System & hidden space”.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Open Settings…") { DiskAccess.openFullDiskAccessSettings() }
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.orange.opacity(0.12)))
+    }
+
+    private var recentSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Recent")
+                    .font(.headline)
+                Spacer()
+                Button("Clear") { recents.clear() }
+                    .buttonStyle(.borderless)
+                    .font(.caption)
+            }
+            VStack(spacing: 4) {
+                ForEach(recents.items) { scan in
+                    RecentRow(scan: scan,
+                              action: { vm.scanRecent(scan) },
+                              remove: { recents.remove(scan) })
+                }
+            }
+        }
     }
 
     private var header: some View {
@@ -134,6 +184,47 @@ private struct ChooseFolderCard: View {
             )
         }
         .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+    }
+}
+
+private struct RecentRow: View {
+    let scan: RecentScan
+    let action: () -> Void
+    let remove: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: scan.isVolume ? "internaldrive" : "folder")
+                .foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(scan.name).font(.callout.weight(.medium)).lineLimit(1)
+                Text(scan.path)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            Spacer()
+            Text(scan.date, style: .relative)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+            if hovering {
+                Button { remove() } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(hovering ? Color.accentColor.opacity(0.10) : Color(nsColor: .controlBackgroundColor))
+        )
+        .contentShape(Rectangle())
+        .onTapGesture { action() }
         .onHover { hovering = $0 }
     }
 }

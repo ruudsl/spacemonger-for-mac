@@ -1,0 +1,63 @@
+/* SpaceMonger — base (English) strings. SwiftUI uses the source literal as the
+   key, so these are mostly identity mappings kept for reference and tooling. */
+
+"Select a disk or folder to visualise what's using your space." = "Select a disk or folder to visualise what's using your space.";
+"Disks" = "Disks";
+"Scan a Folder…" = "Scan a Folder…";
+"Choose any folder" = "Choose any folder";
+"Recent" = "Recent";
+"Clear" = "Clear";
+"Internal" = "Internal";
+"Removable" = "Removable";
+"External" = "External";
+
+"Enable Full Disk Access to scan system files" = "Enable Full Disk Access to scan system files";
+"Open Settings…" = "Open Settings…";
+"Some system folders couldn't be read" = "Some system folders couldn't be read";
+
+"Contents" = "Contents";
+"Filter" = "Filter";
+"This folder is empty" = "This folder is empty";
+"No matching items" = "No matching items";
+
+"Quick Look" = "Quick Look";
+"Open" = "Open";
+"Reveal in Finder" = "Reveal in Finder";
+"Copy Path" = "Copy Path";
+"Zoom In" = "Zoom In";
+"Add to Collector" = "Add to Collector";
+"Remove from Collector" = "Remove from Collector";
+"Move to Trash" = "Move to Trash";
+
+"Nothing selected" = "Nothing selected";
+"Size" = "Size";
+"Of total" = "Of total";
+"Path" = "Path";
+"Items" = "Items";
+"Folder" = "Folder";
+"File" = "File";
+"Application / package" = "Application / package";
+"Unattributed space" = "Unattributed space";
+
+"Collector" = "Collector";
+"Drag items here to collect them" = "Drag items here to collect them";
+"Then move them all to the Trash at once" = "Then move them all to the Trash at once";
+"Empty" = "Empty";
+
+"Cancel" = "Cancel";
+"Preparing…" = "Preparing…";
+"OK" = "OK";
+"Something went wrong" = "Something went wrong";
+
+"Layout" = "Layout";
+"Colour" = "Colour";
+"By Folder" = "By Folder";
+"By File Type" = "By File Type";
+"By Depth" = "By Depth";
+"Sunburst" = "Sunburst";
+"Treemap" = "Treemap";
+
+"Scan Folder…" = "Scan Folder…";
+"Rescan" = "Rescan";
+"Item" = "Item";
+"View" = "View";

@@ -1,0 +1,62 @@
+/* SpaceMonger — Nederlandse vertalingen. Sleutels = de Engelse bronteksten. */
+
+"Select a disk or folder to visualise what's using your space." = "Kies een schijf of map om te zien wat je ruimte gebruikt.";
+"Disks" = "Schijven";
+"Scan a Folder…" = "Scan een map…";
+"Choose any folder" = "Kies een willekeurige map";
+"Recent" = "Recent";
+"Clear" = "Wissen";
+"Internal" = "Intern";
+"Removable" = "Verwisselbaar";
+"External" = "Extern";
+
+"Enable Full Disk Access to scan system files" = "Schakel Volledige schijftoegang in om systeembestanden te scannen";
+"Open Settings…" = "Open Instellingen…";
+"Some system folders couldn't be read" = "Sommige systeemmappen konden niet worden gelezen";
+
+"Contents" = "Inhoud";
+"Filter" = "Filter";
+"This folder is empty" = "Deze map is leeg";
+"No matching items" = "Geen overeenkomende items";
+
+"Quick Look" = "Snelle weergave";
+"Open" = "Openen";
+"Reveal in Finder" = "Toon in Finder";
+"Copy Path" = "Kopieer pad";
+"Zoom In" = "Inzoomen";
+"Add to Collector" = "Toevoegen aan verzamelaar";
+"Remove from Collector" = "Verwijderen uit verzamelaar";
+"Move to Trash" = "Verplaats naar prullenmand";
+
+"Nothing selected" = "Niets geselecteerd";
+"Size" = "Grootte";
+"Of total" = "Van totaal";
+"Path" = "Pad";
+"Items" = "Items";
+"Folder" = "Map";
+"File" = "Bestand";
+"Application / package" = "Programma / pakket";
+"Unattributed space" = "Niet-toegewezen ruimte";
+
+"Collector" = "Verzamelaar";
+"Drag items here to collect them" = "Sleep items hierheen om ze te verzamelen";
+"Then move them all to the Trash at once" = "Verplaats ze daarna in één keer naar de prullenmand";
+"Empty" = "Leegmaken";
+
+"Cancel" = "Annuleer";
+"Preparing…" = "Voorbereiden…";
+"OK" = "OK";
+"Something went wrong" = "Er ging iets mis";
+
+"Layout" = "Weergave";
+"Colour" = "Kleur";
+"By Folder" = "Op map";
+"By File Type" = "Op bestandstype";
+"By Depth" = "Op diepte";
+"Sunburst" = "Zonnestraal";
+"Treemap" = "Boomkaart";
+
+"Scan Folder…" = "Scan map…";
+"Rescan" = "Opnieuw scannen";
+"Item" = "Item";
+"View" = "Weergave";

@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import Combine
 
 /// Cooperative cancellation flag shared with the background scan.
@@ -26,8 +27,45 @@ final class ScanViewModel: ObservableObject {
         case failed(String)
     }
 
+    enum ViewMode: String, CaseIterable, Identifiable {
+        case sunburst, treemap
+        var id: String { rawValue }
+        var label: String { self == .sunburst ? "Sunburst" : "Treemap" }
+        var symbol: String { self == .sunburst ? "circle.hexagongrid" : "square.grid.3x3.fill" }
+    }
+
+    enum ColorMode: String, CaseIterable, Identifiable {
+        case rainbow, byType, byDepth
+        var id: String { rawValue }
+        var label: String {
+            switch self {
+            case .rainbow: return "By Folder"
+            case .byType: return "By File Type"
+            case .byDepth: return "By Depth"
+            }
+        }
+    }
+
     // Start screen
     @Published var volumes: [VolumeInfo] = []
+    let recentScans = RecentScansStore()
+
+    // Display options
+    @Published var viewMode: ViewMode = .sunburst
+    @Published var colorMode: ColorMode = .rainbow
+    @Published var searchText: String = ""
+
+    // Diagnostics
+    @Published private(set) var unreadableDirectories = 0
+    @Published private(set) var hasFullDiskAccess = true
+    @Published var accessBannerDismissed = false
+
+    var shouldShowAccessBanner: Bool {
+        guard !accessBannerDismissed else { return false }
+        return unreadableDirectories > 0 || !hasFullDiskAccess
+    }
+
+    func dismissAccessBanner() { accessBannerDismissed = true }
 
     // Scan lifecycle
     @Published private(set) var scanState: ScanState = .idle
@@ -53,6 +91,7 @@ final class ScanViewModel: ObservableObject {
     private var scanTask: Task<Void, Never>?
     private var cancelToken: CancelToken?
     private var scannedURL: URL?
+    private var activeScopedURL: URL?
 
     var isScanning: Bool { scanState == .scanning }
     var hasResult: Bool { rootNode != nil && scanState == .done }
@@ -64,21 +103,43 @@ final class ScanViewModel: ObservableObject {
 
     func loadVolumes() {
         volumes = VolumeInfo.mountedVolumes()
+        hasFullDiskAccess = DiskAccess.hasFullDiskAccess()
     }
 
     // MARK: - Scanning
 
     func scan(volume: VolumeInfo) {
+        setScopedURL(nil)
         startScan(url: volume.url, volume: volume)
     }
 
     func scan(folder url: URL) {
+        setScopedURL(nil)
         startScan(url: url, volume: nil)
+    }
+
+    func scanRecent(_ scan: RecentScan) {
+        guard let url = recentScans.resolve(scan) else {
+            lastError = "Couldn't open “\(scan.name)”. It may have been moved, renamed or disconnected."
+            return
+        }
+        setScopedURL(url)
+        let volume = scan.isVolume
+            ? VolumeInfo.mountedVolumes().first { $0.url.path == url.path }
+            : nil
+        startScan(url: url, volume: volume)
     }
 
     func rescan() {
         guard let url = scannedURL else { return }
         startScan(url: url, volume: scannedVolume)
+    }
+
+    private func setScopedURL(_ url: URL?) {
+        if let old = activeScopedURL, old.path != url?.path {
+            old.stopAccessingSecurityScopedResource()
+        }
+        activeScopedURL = url
     }
 
     private func startScan(url: URL, volume: VolumeInfo?) {
@@ -91,10 +152,15 @@ final class ScanViewModel: ObservableObject {
         sunburstLayout = nil
         collector = []
         scanSummary = nil
+        unreadableDirectories = 0
+        accessBannerDismissed = false
         scannedVolume = volume
         scannedURL = url
         scanProgress = nil
         scanState = .scanning
+
+        let displayName = volume?.name ?? (url.lastPathComponent.isEmpty ? url.path : url.lastPathComponent)
+        recentScans.remember(url: url, name: displayName, isVolume: volume != nil)
 
         let token = CancelToken()
         cancelToken = token
@@ -103,7 +169,7 @@ final class ScanViewModel: ObservableObject {
 
         scanTask = Task.detached(priority: .userInitiated) {
             do {
-                let node = try scanner.scan(
+                let result = try scanner.scan(
                     at: url,
                     isCancelled: { token.isCancelled },
                     progress: { progress in
@@ -117,7 +183,7 @@ final class ScanViewModel: ObservableObject {
                 let elapsed = Date().timeIntervalSince(start)
                 DispatchQueue.main.async {
                     guard self.cancelToken === token else { return }
-                    self.finishScan(root: node, volume: volume, elapsed: elapsed)
+                    self.finishScan(result: result, volume: volume, elapsed: elapsed)
                 }
             } catch is CancellationError {
                 DispatchQueue.main.async {
@@ -143,6 +209,7 @@ final class ScanViewModel: ObservableObject {
     /// Returns to the disk selection screen, discarding the current scan.
     func backToStart() {
         cancelScan()
+        setScopedURL(nil)
         rootNode = nil
         focusNode = nil
         selectedNode = nil
@@ -156,9 +223,10 @@ final class ScanViewModel: ObservableObject {
         scanState = .idle
     }
 
-    private func finishScan(root: FileNode, volume: VolumeInfo?, elapsed: TimeInterval) {
+    private func finishScan(result: DiskScanner.Result, volume: VolumeInfo?, elapsed: TimeInterval) {
         scanTask = nil
         cancelToken = nil
+        let root = result.root
         if let volume {
             addHiddenSpace(to: root, volume: volume)
         }
@@ -167,6 +235,8 @@ final class ScanViewModel: ObservableObject {
         rootNode = root
         focusNode = root
         selectedNode = nil
+        unreadableDirectories = result.unreadableDirectories
+        hasFullDiskAccess = DiskAccess.hasFullDiskAccess()
         scanState = .done
         rebuildSunburst()
 
@@ -224,6 +294,27 @@ final class ScanViewModel: ObservableObject {
         sunburstLayout = focusNode.map { SunburstLayout(focus: $0) }
     }
 
+    // MARK: - Display helpers
+
+    /// Resolves a node's colour for the current colour mode. `hue` is the
+    /// inherited top-level hue used by the "By Folder" mode.
+    func color(for node: FileNode, hue: Double, depth: Int) -> Color {
+        if node.isHiddenSpace { return Color(white: 0.55) }
+        switch colorMode {
+        case .rainbow: return NodeColor.color(hue: hue, depth: depth)
+        case .byType:  return NodeColor.colorForType(node.fileExtension, depth: depth)
+        case .byDepth: return NodeColor.colorForDepth(depth)
+        }
+    }
+
+    /// Children of the focused folder, filtered by the search text.
+    var filteredChildren: [FileNode] {
+        let kids = focusNode?.children ?? []
+        let query = searchText.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !query.isEmpty else { return kids }
+        return kids.filter { $0.name.lowercased().contains(query) }
+    }
+
     // MARK: - Collector
 
     func isInCollector(_ node: FileNode) -> Bool {
@@ -254,6 +345,17 @@ final class ScanViewModel: ObservableObject {
     func reveal(_ node: FileNode) {
         guard node.isRealFileSystemItem else { return }
         FinderActions.reveal(node.url)
+    }
+
+    func open(_ node: FileNode) {
+        guard node.isRealFileSystemItem else { return }
+        NSWorkspace.shared.open(node.url)
+    }
+
+    func copyPath(_ node: FileNode) {
+        guard node.isRealFileSystemItem else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(node.url.path, forType: .string)
     }
 
     func quickLook(_ node: FileNode?) {

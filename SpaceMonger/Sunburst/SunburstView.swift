@@ -53,7 +53,7 @@ struct SunburstView: View {
                                      startAngle: segment.startAngle,
                                      endAngle: segment.endAngle)
 
-            var color = segment.color
+            var color = vm.color(for: segment.node, hue: segment.hue, depth: segment.depth)
             let isHovered = segment.node.id == hoveredID
             if dimOthers && !isHovered && !selectedPath.contains(segment.node.id) {
                 color = color.opacity(0.55)
