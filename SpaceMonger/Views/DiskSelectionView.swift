@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 /// Start screen: pick a mounted volume or choose any folder to scan. Mirrors
-/// DaisyDisk's disk list with a usage bar per disk.
+/// the list of disks with a usage bar per disk.
 struct DiskSelectionView: View {
     @EnvironmentObject var vm: ScanViewModel
     @EnvironmentObject var recents: RecentScansStore
@@ -90,7 +90,9 @@ struct DiskSelectionView: View {
                 Text("SpaceMonger")
                     .font(.system(size: 26, weight: .bold))
             }
-            Text("Select a disk or folder to visualise what's using your space.")
+            Text("Find it. Free it.")
+                .font(.title3.weight(.semibold))
+            Text("See exactly what's filling your disk and reclaim the space — quickly and safely.")
                 .foregroundStyle(.secondary)
         }
     }
@@ -113,6 +115,15 @@ private struct DiskCard: View {
     let action: () -> Void
     @State private var hovering = false
 
+    private var subtitle: String {
+        let kind = volume.isInternal ? loc("Internal")
+            : (volume.isRemovable ? loc("Removable") : loc("External"))
+        if let format = volume.formatDescription, !format.isEmpty {
+            return "\(kind) · \(format)"
+        }
+        return kind
+    }
+
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 12) {
@@ -122,9 +133,10 @@ private struct DiskCard: View {
                         .foregroundStyle(.tint)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(volume.name).font(.headline).lineLimit(1)
-                        Text(volume.isInternal ? "Internal" : (volume.isRemovable ? "Removable" : "External"))
+                        Text(subtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .lineLimit(1)
                     }
                     Spacer()
                 }

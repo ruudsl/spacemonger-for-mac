@@ -107,3 +107,23 @@
 "%@ (now) vs %@ (saved)" = "%@ (now) vs %@ (saved)";
 "Total change: %@" = "Total change: %@";
 "%@ (%lld)" = "%@ (%lld)";
+
+/* Safety, focus, specs, gpscan */
+"These are protected system items and were not deleted: %@" = "These are protected system items and were not deleted: %@";
+"Could not move to Trash: %@" = "Could not move to Trash: %@";
+"%lld in focus" = "%lld in focus";
+"Find it. Free it." = "Find it. Free it.";
+"See exactly what's filling your disk and reclaim the space — quickly and safely." = "See exactly what's filling your disk and reclaim the space — quickly and safely.";
+"Focus on matching files" = "Focus on matching files";
+"Name" = "Name";
+"Type" = "Type";
+"contains or glob, e.g. *.mp4" = "contains or glob, e.g. *.mp4";
+"extension, e.g. mov" = "extension, e.g. mov";
+"Min size" = "Min size";
+"MB" = "MB";
+"Focus" = "Focus";
+"Tech Specs" = "Tech Specs";
+"SpaceMonger Tech Specs" = "SpaceMonger Tech Specs";
+"This .gpscan file is compressed. Please re-export it uncompressed." = "This .gpscan file is compressed. Please re-export it uncompressed.";
+"Couldn't read the .gpscan file." = "Couldn't read the .gpscan file.";
+"The .gpscan file contained no folders." = "The .gpscan file contained no folders.";

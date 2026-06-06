@@ -107,3 +107,23 @@
 "%@ (now) vs %@ (saved)" = "%@ (nu) vs %@ (bewaard)";
 "Total change: %@" = "Totale verandering: %@";
 "%@ (%lld)" = "%@ (%lld)";
+
+/* Veiligheid, focus, specs, gpscan */
+"These are protected system items and were not deleted: %@" = "Dit zijn beschermde systeemonderdelen en zijn niet verwijderd: %@";
+"Could not move to Trash: %@" = "Kon niet naar de prullenmand verplaatsen: %@";
+"%lld in focus" = "%lld in focus";
+"Find it. Free it." = "Vind het. Maak het vrij.";
+"See exactly what's filling your disk and reclaim the space — quickly and safely." = "Zie precies wat je schijf vult en win de ruimte terug — snel en veilig.";
+"Focus on matching files" = "Focus op overeenkomende bestanden";
+"Name" = "Naam";
+"Type" = "Type";
+"contains or glob, e.g. *.mp4" = "bevat of glob, bijv. *.mp4";
+"extension, e.g. mov" = "extensie, bijv. mov";
+"Min size" = "Min. grootte";
+"MB" = "MB";
+"Focus" = "Focus";
+"Tech Specs" = "Specificaties";
+"SpaceMonger Tech Specs" = "SpaceMonger-specificaties";
+"This .gpscan file is compressed. Please re-export it uncompressed." = "Dit .gpscan-bestand is gecomprimeerd. Exporteer het opnieuw zonder compressie.";
+"Couldn't read the .gpscan file." = "Kon het .gpscan-bestand niet lezen.";
+"The .gpscan file contained no folders." = "Het .gpscan-bestand bevatte geen mappen.";

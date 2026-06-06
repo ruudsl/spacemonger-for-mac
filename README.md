@@ -1,53 +1,40 @@
 # SpaceMonger for Mac
 
-A **free, native macOS disk-usage analyzer** in the spirit of
-[DaisyDisk](https://daisydiskapp.com/). It scans a disk or folder and shows what
-is eating your space as an interactive **sunburst map**, lets you drill in and
-out, inspect items, and clean up by collecting files and moving them to the
-Trash.
+**Find it. Free it.** See exactly what's filling your disk and reclaim the space
+in the most efficient and easy way.
+
+A **free, native macOS disk-usage analyzer**. It scans a disk or folder and shows
+what is eating your space as an interactive **sunburst** or **treemap**, lets you
+drill in and out, inspect items, and clean up by collecting files and moving them
+to the Trash.
 
 Built with **SwiftUI** (macOS 13+).
 
-> This is an independent, open project. It is not affiliated with or endorsed by
-> DaisyDisk. It reimplements the *workflow* described in the DaisyDisk user
-> guide, not its code or assets.
-
 ## Features
 
-Modelled after the DaisyDisk user guide:
-
-| DaisyDisk concept | In SpaceMonger |
+| Area | In SpaceMonger |
 | --- | --- |
-| Pick a disk to scan | Start screen lists every mounted volume with a used/free bar; or pick any folder |
-| Scanning | Fast background scan with live progress (items, bytes, current path) and Cancel |
+| Pick a disk to scan | Start screen lists every mounted volume with a used/free bar and file system; or pick any folder |
+| Scanning | Concurrent, multi-core background scan with live progress (items, bytes, current path) and Cancel |
 | Sunburst map | Interactive radial chart; ring size is proportional to on-disk usage |
-| Navigation (zoom in/out) | Double-click a sector to zoom in, click the centre to go up, use the breadcrumb to jump |
-| Hover & selection | Hover highlights a sector and shows its size in the centre; click selects |
+| Treemap | A squarified treemap as an alternative layout, switchable from the toolbar |
+| Navigation (zoom in/out) | Double-click to zoom in, click the centre to go up, use the breadcrumb to jump |
+| Hover & selection | Hover highlights an item and shows its size in the centre; click selects |
 | File info | Detail panel: size, % of folder, % of total, item count, full path |
-| Content list | Right-hand list of the current folder, ranked by size, colour-matched to the map |
+| Content list | Ranked, colour-matched list of the current folder, with a live filter |
+| Colour modes | By Folder, By File Type, By Depth |
+| Focus masks | Highlight only files matching name / type / minimum-size; everything else is dimmed and filtered |
 | The Collector | Drag items (or use the menu) into the Collector, then move them all to the Trash at once |
-| Reveal in Finder | From the info panel, context menu, or ⇧⌘R |
-| Quick Look | Space-style preview via the info panel, context menu, or ⌘Y |
+| Reveal / Open / Copy path | From the info panel, context menu, or menu bar |
+| Quick Look | Preview any file with ⌘Y |
 | Hidden / system space | A grey "System & hidden space" segment accounts for volume space not attributable to readable files |
 | Scanning system files | Detects missing **Full Disk Access**, flags unreadable folders with a lock badge, and offers a one-click button to open the right Settings pane |
 | Scan as Administrator | A **privileged scan** (authorized `du` as root) measures even root-only system files — prompts once for an admin password |
 | Recent scans | The start screen remembers recent disks/folders as **security-scoped bookmarks** so you can re-scan in one click |
-
-### Beyond DaisyDisk — features inspired by [GrandPerspective](https://grandperspectiv.sourceforge.net/)
-
-| GrandPerspective concept | In SpaceMonger |
-| --- | --- |
-| Treemap view | A squarified **Treemap** layout, switchable with the Sunburst (⌘1 / ⌘2) |
-| Colour by file type / depth | Colour modes: **By Folder**, **By File Type**, **By Depth** |
-| Filtering | A live **Filter** field over the folder contents |
-| Exclude masks | **Exclusions** in Settings (⌘,) — glob patterns like `node_modules`, `*.log` skipped while scanning |
-| Reveal / Open / Copy path | All available from the info panel and context menu |
-| Delete to Trash | Single items or the whole Collector |
-| Save / load scans | Save a scan to a `.smscan` file and re-open it later (⌘S / ⇧⌘O) |
-| Compare scans | Diff the current scan against a saved one (grown / shrunk / added / removed) |
-
-Not yet implemented from GrandPerspective (candidates for later): importing
-GrandPerspective's own `.gpscan` files and advanced focus masks.
+| Save / load / compare | Save a scan to a `.smscan` file, re-open it (also imports `.gpscan`), and diff two scans (grown / shrunk / added / removed) |
+| Exclusions | Glob patterns (e.g. `node_modules`, `*.log`) skipped while scanning, set in Settings (⌘,) |
+| Safety | Safety stoppers block deletion of system-critical components and whole volumes |
+| Privacy | Reads only file metadata (names & sizes); no content, no network, no analytics |
 
 ### Keyboard shortcuts
 
@@ -112,6 +99,8 @@ SpaceMonger/
     RecentScan.swift          A remembered location (security-scoped bookmark)
     ScanArchive.swift         Save / load a scan to a .smscan file
     ScanComparison.swift      Diff two scans
+    GPScanImporter.swift      Import a .gpscan file
+    FocusCriteria.swift       Focus-mask matching rules
   ViewModels/
     ScanViewModel.swift       App state: scan lifecycle, navigation, collector
     RecentScansStore.swift    Persists & resolves recent scans
@@ -130,6 +119,10 @@ SpaceMonger/
     FileInfoView.swift        Selected-item details & actions
     FileListView.swift        Ranked contents list (drag to Collector)
     CollectorView.swift       Drop target + "move to Trash"
+    SettingsView.swift        Exclusions preferences
+    ComparisonView.swift      Scan diff sheet
+    FocusPanelView.swift      Focus-mask popover
+    TechSpecsView.swift       Tech Specs sheet
   Utilities/
     Formatting.swift          Byte / percent / count formatting
     NodeColor.swift           Shared colour scheme (folder / type / depth)
@@ -137,9 +130,10 @@ SpaceMonger/
     QuickLookController.swift  Quick Look panel
     DiskAccess.swift          Full Disk Access detection & Settings deep-link
     ExcludeMatcher.swift      Glob matching for exclusions
+    SystemPaths.swift         Safety stoppers for system-critical paths
     Localization.swift        loc() / locf() helpers
-  Views/… (incl. SettingsView, ComparisonView)
   en.lproj / nl.lproj         Localized UI strings (English + Dutch)
+PrivilegedHelper/             Optional XPC helper (out-of-target; see its README)
 tools/
   make_icon.py                Generates the app icon PNGs (pure stdlib)
 ```
@@ -153,16 +147,37 @@ crosses into other mounted volumes, so figures stay accurate.
 ## Roadmap / ideas
 
 Done: app icon, recent scans (security-scoped bookmarks), treemap view,
-colour-by-type/depth, content filter, Full Disk Access flow, **administrator
-scan** of root-only files, **exclude masks**, **save / load / compare scans**,
-and English + Dutch localisation (static and dynamic strings).
+colour-by-type/depth, content filter, focus masks, Full Disk Access flow,
+**administrator scan** of root-only files, exclude masks,
+**save / load / compare** scans, `.gpscan` import, concurrent scanning, safety
+stoppers, Tech Specs sheet, and English + Dutch localisation.
 
 Still on the list:
 
-- A bundled XPC privileged helper (a more seamless alternative to the
-  authorized-`du` administrator scan, but needs Developer ID signing)
-- Importing GrandPerspective's own `.gpscan` files
-- Advanced focus masks
+- A bundled **XPC privileged helper** (a more seamless alternative to the
+  authorized-`du` administrator scan). Ready-to-wire source and setup steps are
+  in [`PrivilegedHelper/`](PrivilegedHelper/README.md) — it needs a paid Apple
+  Developer ID to sign, so it's kept out of the default build.
+- Reading the few files that even root cannot access (rare).
+
+## Tech Specs
+
+- **Supported disks/sources:** any volume macOS mounts as a file system —
+  internal, external, removable, optical, network (NAS/SMB/AFP/NFS/WebDAV via the
+  Finder), disk images and FUSE volumes. File systems: APFS, HFS+/HFS, exFAT,
+  FAT, NTFS and others.
+- **Scanning:** concurrent, multi-core measurement via macOS file-system APIs;
+  speed depends on disk type, file system and file count.
+- **Hidden space:** the difference between used space and scannable files —
+  shrink it with Full Disk Access or Scan as Administrator.
+- **File preview:** built-in Quick Look (⌘Y).
+- **Safety:** stoppers prevent deleting system-critical components; no automatic
+  cleaning; deletions go to the Trash.
+- **Privacy:** reads only metadata (names & sizes); nothing leaves your Mac.
+- **Requirements:** macOS 13+ (Apple Silicon & Intel, 64-bit).
+- **Languages:** English, Nederlands.
+
+The same information is available in-app via **Help → SpaceMonger Tech Specs**.
 
 ## License
 

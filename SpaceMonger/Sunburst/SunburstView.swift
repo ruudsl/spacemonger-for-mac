@@ -43,6 +43,8 @@ struct SunburstView: View {
         let hoveredID = vm.hoveredNode?.id
         let selectedPath = Set(vm.selectedNode?.pathFromRoot.map(\.id) ?? [])
         let dimOthers = hoveredID != nil
+        let focusActive = vm.isFocusActive
+        let focusIDs = vm.focusMatchIDs
 
         for segment in layout.segments {
             let inner = m.innerRadius(depth: segment.depth)
@@ -55,7 +57,9 @@ struct SunburstView: View {
 
             var color = vm.color(for: segment.node, hue: segment.hue, depth: segment.depth)
             let isHovered = segment.node.id == hoveredID
-            if dimOthers && !isHovered && !selectedPath.contains(segment.node.id) {
+            if focusActive && !focusIDs.contains(segment.node.id) {
+                color = color.opacity(0.12)
+            } else if dimOthers && !isHovered && !selectedPath.contains(segment.node.id) {
                 color = color.opacity(0.55)
             }
             context.fill(path, with: .color(color))

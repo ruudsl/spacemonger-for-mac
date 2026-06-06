@@ -27,6 +27,9 @@ struct ContentView: View {
         .sheet(item: $vm.comparison) { comparison in
             ComparisonView(comparison: comparison) { vm.comparison = nil }
         }
+        .sheet(isPresented: $vm.showTechSpecs) {
+            TechSpecsView { vm.showTechSpecs = false }
+        }
         .alert("Something went wrong",
                isPresented: Binding(
                 get: { vm.lastError != nil },
@@ -71,6 +74,7 @@ private struct ResultsView: View {
 
 private struct ResultsToolbar: View {
     @EnvironmentObject var vm: ScanViewModel
+    @State private var showFocus = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -111,6 +115,17 @@ private struct ResultsToolbar: View {
             .menuStyle(.borderlessButton)
             .frame(width: 44)
             .help("Colour mode")
+
+            Button {
+                showFocus.toggle()
+            } label: {
+                Image(systemName: "line.3.horizontal.decrease.circle\(vm.isFocusActive ? ".fill" : "")")
+            }
+            .help("Focus")
+            .foregroundStyle(vm.isFocusActive ? Color.accentColor : Color.primary)
+            .popover(isPresented: $showFocus, arrowEdge: .bottom) {
+                FocusPanelView().environmentObject(vm)
+            }
 
             Button {
                 vm.rescan()

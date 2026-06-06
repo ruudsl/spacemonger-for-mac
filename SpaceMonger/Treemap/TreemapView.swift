@@ -17,7 +17,7 @@ final class TreemapCache {
     }
 }
 
-/// GrandPerspective-style treemap rendering with the same interaction model as
+/// Treemap rendering with the same interaction model as
 /// the sunburst (hover highlights, click selects, double-click zooms in, and
 /// double-clicking empty space zooms out).
 struct TreemapView: View {
@@ -59,10 +59,15 @@ struct TreemapView: View {
     private func draw(layout: TreemapLayout, context: inout GraphicsContext) {
         let hoveredID = vm.hoveredNode?.id
         let selectedID = vm.selectedNode?.id
+        let focusActive = vm.isFocusActive
+        let focusIDs = vm.focusMatchIDs
 
         for tile in layout.tiles {
             let path = Path(tile.rect)
-            let color = vm.color(for: tile.node, hue: tile.hue, depth: tile.depth)
+            var color = vm.color(for: tile.node, hue: tile.hue, depth: tile.depth)
+            if focusActive && !focusIDs.contains(tile.node.id) {
+                color = color.opacity(0.12)
+            }
 
             // Leaves are filled solid; directories are mostly covered by their
             // children, so a lighter fill reads as a subtle container background.

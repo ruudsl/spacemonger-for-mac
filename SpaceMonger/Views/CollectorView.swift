@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
 
-/// DaisyDisk-style Collector: a tray you drag items into, review, and then send
+/// The Collector: a tray you drag items into, review, and then send
 /// to the Trash in one go. Items can also be added via the list/context menu.
 struct CollectorView: View {
     @EnvironmentObject var vm: ScanViewModel

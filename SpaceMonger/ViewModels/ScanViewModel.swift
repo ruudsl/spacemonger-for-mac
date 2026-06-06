@@ -55,11 +55,17 @@ final class ScanViewModel: ObservableObject {
     @Published var comparison: ScanComparison?
     @Published private(set) var isComparing = false
     @Published private(set) var loadedFromFile = false
+    @Published var showTechSpecs = false
 
     // Display options
     @Published var viewMode: ViewMode = .sunburst
     @Published var colorMode: ColorMode = .rainbow
     @Published var searchText: String = ""
+    @Published var focus = FocusCriteria() {
+        didSet { recomputeFocusMatches() }
+    }
+    @Published private(set) var focusMatchIDs: Set<UUID> = []
+    var isFocusActive: Bool { focus.isActive }
 
     // Diagnostics
     @Published private(set) var unreadableDirectories = 0
@@ -269,6 +275,7 @@ final class ScanViewModel: ObservableObject {
         hasFullDiskAccess = DiskAccess.hasFullDiskAccess()
         scanState = .done
         rebuildSunburst()
+        recomputeFocusMatches()
 
         let count = scanProgress?.scannedItems ?? root.fileCount
         scanSummary = locf(loc("%@ items · %@ · scanned in %@s"),
@@ -340,12 +347,47 @@ final class ScanViewModel: ObservableObject {
         }
     }
 
-    /// Children of the focused folder, filtered by the search text.
+    /// Children of the focused folder, filtered by the search text and focus mask.
     var filteredChildren: [FileNode] {
-        let kids = focusNode?.children ?? []
+        var kids = focusNode?.children ?? []
+        if focus.isActive {
+            kids = kids.filter { focusMatchIDs.contains($0.id) }
+        }
         let query = searchText.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !query.isEmpty else { return kids }
-        return kids.filter { $0.name.lowercased().contains(query) }
+        if !query.isEmpty {
+            kids = kids.filter { $0.name.lowercased().contains(query) }
+        }
+        return kids
+    }
+
+    func isInFocus(_ node: FileNode) -> Bool {
+        focusMatchIDs.contains(node.id)
+    }
+
+    func clearFocus() {
+        focus = FocusCriteria()
+    }
+
+    /// Rebuilds the set of node ids that match the focus mask (matching files and
+    /// all their ancestors, so paths to matches stay visible).
+    private func recomputeFocusMatches() {
+        guard focus.isActive, let root = rootNode else {
+            if !focusMatchIDs.isEmpty { focusMatchIDs = [] }
+            return
+        }
+        var matches: Set<UUID> = []
+        func visit(_ node: FileNode) -> Bool {
+            var hasMatch = false
+            if node.children.isEmpty {
+                hasMatch = focus.matchesFile(node)
+            } else {
+                for child in node.children where visit(child) { hasMatch = true }
+            }
+            if hasMatch { matches.insert(node.id) }
+            return hasMatch
+        }
+        _ = visit(root)
+        focusMatchIDs = matches
     }
 
     // MARK: - Collector
@@ -409,12 +451,20 @@ final class ScanViewModel: ObservableObject {
         }
     }
 
+    /// Loads either a native `.smscan` archive or a `.gpscan` file.
+    private func loadTree(from url: URL) throws -> (root: FileNode, name: String) {
+        if url.pathExtension.lowercased() == "gpscan" {
+            return try GPScanImporter.importTree(from: url)
+        }
+        let archive = try ScanArchive.read(from: url)
+        return (archive.makeTree(), archive.displayName)
+    }
+
     func openScan(from url: URL) {
         do {
-            let archive = try ScanArchive.read(from: url)
+            let (root, name) = try loadTree(from: url)
             cancelScan()
             setScopedURL(nil)
-            let root = archive.makeTree()
             root.sortBySizeDescending(recursive: true)
 
             rootNode = root
@@ -423,13 +473,14 @@ final class ScanViewModel: ObservableObject {
             hoveredNode = nil
             collector = []
             scannedVolume = nil
-            scannedURL = URL(fileURLWithPath: archive.rootPath)
+            scannedURL = URL(fileURLWithPath: root.url.path)
             unreadableDirectories = 0
             accessBannerDismissed = true
             loadedFromFile = true
             scanState = .done
-            scanSummary = locf(loc("Loaded “%@” · %@"), archive.displayName, Formatting.bytes(root.size))
+            scanSummary = locf(loc("Loaded “%@” · %@"), name, Formatting.bytes(root.size))
             rebuildSunburst()
+            recomputeFocusMatches()
         } catch {
             lastError = locf(loc("Couldn't open the scan file: %@"), error.localizedDescription)
         }
@@ -441,10 +492,9 @@ final class ScanViewModel: ObservableObject {
         let currentName = scannedVolume?.name ?? current.name
         Task.detached(priority: .userInitiated) {
             do {
-                let archive = try ScanArchive.read(from: url)
-                let other = archive.makeTree()
+                let (other, otherName) = try self.loadTree(from: url)
                 let result = ScanComparison.compare(current: current, currentName: currentName,
-                                                    other: other, otherName: archive.displayName)
+                                                    other: other, otherName: otherName)
                 DispatchQueue.main.async {
                     self.comparison = result
                     self.isComparing = false
@@ -472,7 +522,18 @@ final class ScanViewModel: ObservableObject {
     }
 
     private func trashNodes(_ nodes: [FileNode]) {
-        let targets = nodes.filter { $0.isRealFileSystemItem && $0.parent != nil }
+        let candidates = nodes.filter { $0.isRealFileSystemItem && $0.parent != nil }
+        guard !candidates.isEmpty else { return }
+
+        // Safety stopper: never trash system-critical locations.
+        let blocked = candidates.filter { SystemPaths.isProtected($0.url) }
+        let targets = candidates.filter { !SystemPaths.isProtected($0.url) }
+
+        if !blocked.isEmpty {
+            let names = blocked.map { $0.name }.joined(separator: ", ")
+            lastError = locf(loc("These are protected system items and were not deleted: %@"), names)
+            for node in blocked { collector.removeAll { $0 === node } }
+        }
         guard !targets.isEmpty else { return }
 
         let result = FinderActions.moveToTrash(targets.map(\.url))
@@ -509,10 +570,11 @@ final class ScanViewModel: ObservableObject {
 
         revision += 1
         rebuildSunburst()
+        recomputeFocusMatches()
 
         if !result.failures.isEmpty {
             let names = result.failures.map { $0.url.lastPathComponent }.joined(separator: ", ")
-            lastError = "Could not move to Trash: \(names)"
+            lastError = locf(loc("Could not move to Trash: %@"), names)
         }
     }
 

@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 /// User-configured glob patterns (matched against item names) that are skipped
-/// while scanning — GrandPerspective's exclude/mask idea. Examples:
+/// while scanning. Examples:
 /// `node_modules`, `*.log`, `.DS_Store`, `*.xcuserstate`.
 final class ExcludeStore: ObservableObject {
     @Published var patterns: [String] {

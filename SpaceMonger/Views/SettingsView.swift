@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Preferences window: manage exclude patterns (GrandPerspective-style masks).
+/// Preferences window: manage exclude patterns (name masks).
 struct SettingsView: View {
     @EnvironmentObject var excludes: ExcludeStore
     @State private var newPattern = ""

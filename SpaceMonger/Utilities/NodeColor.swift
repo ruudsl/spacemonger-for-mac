@@ -4,7 +4,7 @@ import SwiftUI
 /// collector all tint the same item identically.
 ///
 /// Top-level children of the focused node each get an evenly spaced hue around
-/// the wheel (the bright outer ring you see in DaisyDisk). Descendants inherit
+/// the wheel (the bright outer ring). Descendants inherit
 /// their top-level ancestor's hue and get progressively lighter / less
 /// saturated the deeper (further out) they sit.
 enum NodeColor {
@@ -27,7 +27,7 @@ enum NodeColor {
         return (0.58 + Double(index) / Double(count)).truncatingRemainder(dividingBy: 1.0)
     }
 
-    /// Stable colour derived from a file's extension (GrandPerspective's default
+    /// Stable colour derived from a file's extension (the default for the
     /// "colour by file type"). Common types get hand-picked, recognisable hues.
     static func colorForType(_ ext: String, depth: Int) -> Color {
         if ext.isEmpty {

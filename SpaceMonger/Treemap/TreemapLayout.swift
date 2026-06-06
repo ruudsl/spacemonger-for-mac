@@ -10,7 +10,7 @@ struct TreemapTile: Identifiable {
 }
 
 /// Squarified treemap (Bruls, Huizing & van Wijk) for the focused node's
-/// subtree. Like GrandPerspective: nested rectangles sized by on-disk usage,
+/// subtree: nested rectangles sized by on-disk usage,
 /// laid out to keep tiles as close to square as possible.
 struct TreemapLayout {
     private(set) var tiles: [TreemapTile] = []

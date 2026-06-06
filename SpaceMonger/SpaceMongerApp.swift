@@ -76,6 +76,9 @@ struct SpaceMongerApp: App {
                 .keyboardShortcut(.delete, modifiers: [.command])
                 .disabled(vm.selectedNode == nil)
             }
+            CommandGroup(replacing: .help) {
+                Button("SpaceMonger Tech Specs") { vm.showTechSpecs = true }
+            }
         }
 
         Settings {
@@ -88,6 +91,10 @@ struct SpaceMongerApp: App {
 
     private var scanType: UTType {
         UTType(filenameExtension: ScanArchive.fileExtension) ?? .json
+    }
+
+    private var openableScanTypes: [UTType] {
+        [scanType, .json, UTType(filenameExtension: "gpscan") ?? .xml]
     }
 
     private func chooseFolder() {
@@ -107,7 +114,7 @@ struct SpaceMongerApp: App {
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [scanType, .json]
+        panel.allowedContentTypes = openableScanTypes
         if panel.runModal() == .OK, let url = panel.url {
             vm.openScan(from: url)
         }
@@ -129,7 +136,7 @@ struct SpaceMongerApp: App {
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [scanType, .json]
+        panel.allowedContentTypes = openableScanTypes
         panel.message = "Choose a saved scan to compare against the current one"
         if panel.runModal() == .OK, let url = panel.url {
             vm.compareWith(url: url)

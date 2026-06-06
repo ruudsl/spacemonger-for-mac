@@ -1,0 +1,48 @@
+// Reference only — copy into the SpaceMonger app target when you wire up the
+// helper. Not compiled as-is (the `.example` extension keeps it out of the build).
+//
+// Registers/uses the privileged helper via SMAppService and falls back to the
+// authorized-`du` PrivilegedScanner when the helper isn't installed.
+
+import Foundation
+import ServiceManagement
+
+enum PrivilegedHelperManager {
+
+    private static let daemon = SMAppService.daemon(
+        plistName: "net.slaats.SpaceMonger.Helper.plist")
+
+    /// Installs/registers the daemon (prompts the user to approve in Settings).
+    static func registerIfNeeded() throws {
+        if daemon.status != .enabled {
+            try daemon.register()
+        }
+    }
+
+    static var isReady: Bool { daemon.status == .enabled }
+
+    /// Asks the helper to measure `url` and returns the path of the du-listing it
+    /// produced, which you can parse with the same logic as PrivilegedScanner.
+    static func measure(_ url: URL) async throws -> String {
+        let connection = NSXPCConnection(machServiceName: HelperConstants.machServiceName,
+                                         options: .privileged)
+        connection.remoteObjectInterface = NSXPCInterface(with: HelperProtocol.self)
+        connection.resume()
+        defer { connection.invalidate() }
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let proxy = connection.remoteObjectProxyWithErrorHandler { error in
+                continuation.resume(throwing: error)
+            } as? HelperProtocol
+            proxy?.measureDiskUsage(path: url.path) { resultPath, error in
+                if let resultPath {
+                    continuation.resume(returning: resultPath)
+                } else {
+                    continuation.resume(throwing: NSError(
+                        domain: "SpaceMonger", code: 1,
+                        userInfo: [NSLocalizedDescriptionKey: error ?? "Helper failed"]))
+                }
+            }
+        }
+    }
+}

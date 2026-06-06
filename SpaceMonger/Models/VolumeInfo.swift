@@ -1,7 +1,7 @@
 import Foundation
 
 /// Describes a mounted volume that the user can pick from the start screen,
-/// mirroring DaisyDisk's disk selection list.
+/// the start screen.
 struct VolumeInfo: Identifiable, Hashable {
     let id: URL              // the volume's root URL
     let name: String
@@ -9,6 +9,7 @@ struct VolumeInfo: Identifiable, Hashable {
     let availableCapacity: Int64
     let isRemovable: Bool
     let isInternal: Bool
+    let formatDescription: String?   // e.g. "APFS", "Mac OS Extended"
 
     var url: URL { id }
     var usedCapacity: Int64 { max(0, totalCapacity - availableCapacity) }
@@ -28,7 +29,8 @@ struct VolumeInfo: Identifiable, Hashable {
             .volumeIsRemovableKey,
             .volumeIsInternalKey,
             .volumeIsBrowsableKey,
-            .volumeIsLocalKey
+            .volumeIsLocalKey,
+            .volumeLocalizedFormatDescriptionKey
         ]
 
         let fm = FileManager.default
@@ -58,7 +60,8 @@ struct VolumeInfo: Identifiable, Hashable {
                 totalCapacity: total,
                 availableCapacity: available,
                 isRemovable: values.volumeIsRemovable ?? false,
-                isInternal: values.volumeIsInternal ?? false
+                isInternal: values.volumeIsInternal ?? false,
+                formatDescription: values.volumeLocalizedFormatDescription
             ))
         }
 

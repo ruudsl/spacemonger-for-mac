@@ -10,8 +10,8 @@ final class FileNode: Identifiable, Hashable {
         case directory
         /// Space reported as used by the volume that we could not attribute to
         /// any concrete file (system data, purgeable space, other users, files
-        /// we were not allowed to read). Modelled after DaisyDisk's
-        /// "hidden space" segment.
+        /// we were not allowed to read). Surfaced as a single
+        /// "System & hidden space" segment.
         case hiddenSpace
     }
 
