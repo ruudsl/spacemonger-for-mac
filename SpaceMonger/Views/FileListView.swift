@@ -150,6 +150,18 @@ private struct FileRow: View {
         if node.isRealFileSystemItem {
             Button("Quick Look") { vm.quickLook(node) }
             Button("Open") { vm.open(node) }
+            Menu("Open With") {
+                let apps = vm.applications(for: node)
+                if apps.isEmpty {
+                    Text("No applications")
+                } else {
+                    ForEach(apps, id: \.self) { app in
+                        Button(app.deletingPathExtension().lastPathComponent) {
+                            vm.open(node, withApplicationAt: app)
+                        }
+                    }
+                }
+            }
             Button("Reveal in Finder") { vm.reveal(node) }
             Button("Copy Path") { vm.copyPath(node) }
             if node.isDirectory && !node.children.isEmpty {

@@ -57,6 +57,12 @@ final class ScanViewModel: ObservableObject {
     @Published private(set) var loadedFromFile = false
     @Published var showTechSpecs = false
 
+    // Snapshots / purgeable space
+    @Published var showSnapshots = false
+    @Published private(set) var snapshots: [SnapshotManager.LocalSnapshot] = []
+    @Published private(set) var purgeableBytes: Int64 = 0
+    @Published private(set) var isWorkingSnapshots = false
+
     // Display options
     @Published var viewMode: ViewMode = .sunburst
     @Published var colorMode: ColorMode = .rainbow
@@ -427,6 +433,18 @@ final class ScanViewModel: ObservableObject {
         NSWorkspace.shared.open(node.url)
     }
 
+    /// Applications that can open the node, for an "Open With" menu.
+    func applications(for node: FileNode) -> [URL] {
+        guard node.isRealFileSystemItem else { return [] }
+        return NSWorkspace.shared.urlsForApplications(toOpen: node.url)
+    }
+
+    func open(_ node: FileNode, withApplicationAt appURL: URL) {
+        guard node.isRealFileSystemItem else { return }
+        NSWorkspace.shared.open([node.url], withApplicationAt: appURL,
+                                configuration: NSWorkspace.OpenConfiguration())
+    }
+
     func copyPath(_ node: FileNode) {
         guard node.isRealFileSystemItem else { return }
         NSPasteboard.general.clearContents()
@@ -511,6 +529,69 @@ final class ScanViewModel: ObservableObject {
     func quickLook(_ node: FileNode?) {
         guard let node, node.isRealFileSystemItem else { return }
         QuickLookController.shared.preview([node.url])
+    }
+
+    // MARK: - Snapshots / purgeable space
+
+    /// The volume mount point snapshot operations apply to.
+    private var snapshotVolume: URL {
+        scannedVolume?.url ?? rootNode?.url ?? URL(fileURLWithPath: "/")
+    }
+
+    func openSnapshots() {
+        showSnapshots = true
+        loadSnapshots()
+    }
+
+    func loadSnapshots() {
+        isWorkingSnapshots = true
+        let volume = snapshotVolume
+        Task.detached(priority: .userInitiated) {
+            let list = SnapshotManager.list(volume: volume)
+            let purgeable = SnapshotManager.purgeableBytes(volume: volume)
+            DispatchQueue.main.async {
+                self.snapshots = list
+                self.purgeableBytes = purgeable
+                self.isWorkingSnapshots = false
+            }
+        }
+    }
+
+    func deleteSnapshots(_ dateStrings: [String]) {
+        guard !dateStrings.isEmpty else { return }
+        isWorkingSnapshots = true
+        Task.detached(priority: .userInitiated) {
+            do {
+                try SnapshotManager.delete(dateStrings: dateStrings)
+                DispatchQueue.main.async { self.loadSnapshots() }
+            } catch let error {
+                DispatchQueue.main.async {
+                    self.isWorkingSnapshots = false
+                    if !self.isCancellation(error) { self.lastError = error.localizedDescription }
+                }
+            }
+        }
+    }
+
+    func thinSnapshots() {
+        isWorkingSnapshots = true
+        let volume = snapshotVolume
+        Task.detached(priority: .userInitiated) {
+            do {
+                try SnapshotManager.thin(volume: volume)
+                DispatchQueue.main.async { self.loadSnapshots() }
+            } catch let error {
+                DispatchQueue.main.async {
+                    self.isWorkingSnapshots = false
+                    if !self.isCancellation(error) { self.lastError = error.localizedDescription }
+                }
+            }
+        }
+    }
+
+    private func isCancellation(_ error: Error) -> Bool {
+        if case SnapshotManager.SnapshotError.cancelled = error { return true }
+        return false
     }
 
     func trash(_ node: FileNode) {

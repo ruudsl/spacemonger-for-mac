@@ -76,6 +76,9 @@ struct SpaceMongerApp: App {
                 .keyboardShortcut(.delete, modifiers: [.command])
                 .disabled(vm.selectedNode == nil)
             }
+            CommandMenu("Tools") {
+                Button("Manage Local Snapshots…") { vm.openSnapshots() }
+            }
             CommandGroup(replacing: .help) {
                 Button("SpaceMonger Tech Specs") { vm.showTechSpecs = true }
             }

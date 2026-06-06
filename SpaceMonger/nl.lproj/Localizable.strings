@@ -127,3 +127,37 @@
 "This .gpscan file is compressed. Please re-export it uncompressed." = "Dit .gpscan-bestand is gecomprimeerd. Exporteer het opnieuw zonder compressie.";
 "Couldn't read the .gpscan file." = "Kon het .gpscan-bestand niet lezen.";
 "The .gpscan file contained no folders." = "Het .gpscan-bestand bevatte geen mappen.";
+
+/* Snapshots, Open With, Tools, Tech Specs */
+"The operation failed." = "De bewerking is mislukt.";
+"Delete" = "Verwijder";
+"Delete %lld snapshots?" = "%lld momentopnamen verwijderen?";
+"Local snapshots are extra copies kept by Time Machine. Deleting them is safe and frees space." = "Lokale momentopnamen zijn extra kopieën die Time Machine bewaart. Ze verwijderen is veilig en maakt ruimte vrij.";
+"Free up purgeable space?" = "Opschoonbare ruimte vrijmaken?";
+"Free Up Space" = "Ruimte vrijmaken";
+"macOS will thin local snapshots to reclaim as much space as it can." = "macOS dunt lokale momentopnamen uit om zoveel mogelijk ruimte terug te winnen.";
+"Snapshots & Purgeable Space" = "Momentopnamen en opschoonbare ruimte";
+"Purgeable: about %@" = "Opschoonbaar: ongeveer %@";
+"Working…" = "Bezig…";
+"No local snapshots" = "Geen lokale momentopnamen";
+"Delete %lld" = "Verwijder %lld";
+"Manage snapshots & purgeable space…" = "Momentopnamen en opschoonbare ruimte beheren…";
+"Manage Local Snapshots…" = "Lokale momentopnamen beheren…";
+"Tools" = "Hulpmiddelen";
+"Open With" = "Open met";
+"No applications" = "Geen programma's";
+"Supported disks" = "Ondersteunde schijven";
+"Scanning" = "Scannen";
+"Hidden space" = "Verborgen ruimte";
+"File preview" = "Bestandsvoorbeeld";
+"Safety" = "Veiligheid";
+"Privacy" = "Privacy";
+"System requirements" = "Systeemvereisten";
+"Languages" = "Talen";
+"Any volume macOS mounts as a file system: internal, external, removable, optical, network (NAS, SMB, AFP, NFS, WebDAV) and disk images or FUSE volumes. File systems include APFS, HFS+, exFAT, FAT and NTFS." = "Elk volume dat macOS als bestandssysteem koppelt: intern, extern, verwisselbaar, optisch, netwerk (NAS, SMB, AFP, NFS, WebDAV) en schijfkopieën of FUSE-volumes. Bestandssystemen: APFS, HFS+, exFAT, FAT en NTFS.";
+"Concurrent, multi-core measurement using the macOS file-system APIs. Scan time depends on the disk type, file system and number of files." = "Gelijktijdige meting over meerdere cores via de bestandssysteem-API's van macOS. De duur hangt af van het schijftype, het bestandssysteem en het aantal bestanden.";
+"The difference between the disk's used space and the files that could be scanned. Shrink it with Full Disk Access, an administrator scan, or by deleting local snapshots." = "Het verschil tussen de gebruikte schijfruimte en de bestanden die gescand konden worden. Verklein het met Volledige schijftoegang, een beheerdersscan of door lokale momentopnamen te verwijderen.";
+"Built-in Quick Look previews any file type — press Space or ⌘Y." = "Ingebouwde Snelle weergave voor elk bestandstype — druk op de spatiebalk of ⌘Y.";
+"Safety stoppers block deleting system-critical components and whole volumes. Nothing is cleaned automatically and deletions go to the Trash." = "Beveiligingen voorkomen het verwijderen van systeemkritische onderdelen en hele volumes. Er wordt niets automatisch opgeschoond en verwijderde items gaan naar de prullenmand.";
+"Reads only file metadata — names and sizes — never contents. Nothing is collected, analysed or sent off your Mac." = "Leest alleen bestandsmetadata — namen en groottes — nooit de inhoud. Er worden geen gegevens verzameld, geanalyseerd of buiten je Mac verstuurd.";
+"macOS 13 or newer (currently %@), on Apple Silicon and Intel." = "macOS 13 of nieuwer (nu %@), op Apple Silicon en Intel.";

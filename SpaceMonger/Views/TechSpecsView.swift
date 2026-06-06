@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// A scrollable "Tech Specs" sheet describing what SpaceMonger can scan and how
-/// it behaves. Written to reflect the app's actual capabilities.
+/// A scrollable, localised "Tech Specs" sheet describing what SpaceMonger can
+/// scan and how it behaves. The content reflects the app's actual capabilities.
 struct TechSpecsView: View {
     var onClose: () -> Void
+
+    private let languages = "English, Français, Deutsch, Italiano, Polski, Русский, Español, Português, Svenska, Türkçe, Українська, 简体中文, 繁體中文, 日本語, Nederlands"
 
     private var osVersion: String {
         let v = ProcessInfo.processInfo.operatingSystemVersion
@@ -13,75 +15,44 @@ struct TechSpecsView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Tech Specs").font(.title2.weight(.bold))
+                Text(loc("Tech Specs")).font(.title2.weight(.bold))
                 Spacer()
-                Button("Done", action: onClose).keyboardShortcut(.defaultAction)
+                Button(loc("Done"), action: onClose).keyboardShortcut(.defaultAction)
             }
             .padding()
             Divider()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    section("Supported disks", "externaldrive", [
-                        "Any volume macOS mounts as a file system: internal, external, removable.",
-                        "Rotational HDD, SSD, flash & memory cards, optical media.",
-                        "Connections: USB, Thunderbolt, FireWire.",
-                        "Network volumes (NAS, SMB, AFP, NFS, WebDAV) mounted in the Finder.",
-                        "Virtual volumes: disk images and FUSE-based file systems.",
-                        "File systems: APFS, HFS+/HFS, exFAT, FAT, NTFS, and anything else macOS mounts."
-                    ])
-
-                    section("Scanning", "speedometer", [
-                        "Concurrent, multi-core scanning of the top-level folders for speed.",
-                        "Scan time depends on disk type, file system and the number of files.",
-                        "Use Rescan as Administrator for disks where system files aren't readable."
-                    ])
-
-                    section("Hidden space", "questionmark.circle", [
-                        "Hidden space is the difference between the disk's used space and the files that could be scanned.",
-                        "Lack of permissions → grant Full Disk Access, or Scan as Administrator.",
-                        "Purgeable space & APFS snapshots are managed by macOS (About This Mac → Storage)."
-                    ])
-
-                    section("File preview", "eye", [
-                        "Built-in Quick Look previews any file type (⌘Y) — documents, photos, videos and more."
-                    ])
-
-                    section("Safety", "checkmark.shield", [
-                        "Safety stoppers block deletion of system-critical components and whole volumes.",
-                        "No automatic cleaning — you decide what to delete.",
-                        "Deletions go to the Trash, so they remain recoverable."
-                    ])
-
-                    section("Privacy", "hand.raised", [
-                        "Reads only file metadata — names and sizes — never file contents.",
-                        "Does not collect, analyse or transmit any data off your Mac.",
-                        "No tracking, statistics or analytics."
-                    ])
-
-                    section("System requirements", "cpu", [
-                        "macOS 13 Ventura or newer (currently running \(osVersion)).",
-                        "Apple Silicon (ARM64) and Intel (x86-64).",
-                        "Languages: English, Français, Deutsch, Italiano, Polski, Русский, Español, Português, Svenska, Türkçe, Українська, 简体中文, 繁體中文, 日本語, Nederlands."
-                    ])
+                VStack(alignment: .leading, spacing: 18) {
+                    spec(loc("Supported disks"), "externaldrive",
+                         loc("Any volume macOS mounts as a file system: internal, external, removable, optical, network (NAS, SMB, AFP, NFS, WebDAV) and disk images or FUSE volumes. File systems include APFS, HFS+, exFAT, FAT and NTFS."))
+                    spec(loc("Scanning"), "speedometer",
+                         loc("Concurrent, multi-core measurement using the macOS file-system APIs. Scan time depends on the disk type, file system and number of files."))
+                    spec(loc("Hidden space"), "questionmark.circle",
+                         loc("The difference between the disk's used space and the files that could be scanned. Shrink it with Full Disk Access, an administrator scan, or by deleting local snapshots."))
+                    spec(loc("File preview"), "eye",
+                         loc("Built-in Quick Look previews any file type — press Space or ⌘Y."))
+                    spec(loc("Safety"), "checkmark.shield",
+                         loc("Safety stoppers block deleting system-critical components and whole volumes. Nothing is cleaned automatically and deletions go to the Trash."))
+                    spec(loc("Privacy"), "hand.raised",
+                         loc("Reads only file metadata — names and sizes — never contents. Nothing is collected, analysed or sent off your Mac."))
+                    spec(loc("System requirements"), "cpu",
+                         locf(loc("macOS 13 or newer (currently %@), on Apple Silicon and Intel."), osVersion))
+                    spec(loc("Languages"), "globe", languages)
                 }
                 .padding()
             }
         }
-        .frame(width: 540, height: 600)
+        .frame(width: 560, height: 600)
     }
 
-    private func section(_ title: String, _ symbol: String, _ items: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label(title, systemImage: symbol)
-                .font(.headline)
-            ForEach(items, id: \.self) { item in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text("•").foregroundStyle(.secondary)
-                    Text(item).fixedSize(horizontal: false, vertical: true)
-                }
+    private func spec(_ title: String, _ symbol: String, _ body: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Label(title, systemImage: symbol).font(.headline)
+            Text(body)
                 .font(.callout)
-            }
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

@@ -34,6 +34,9 @@ Built with **SwiftUI** (macOS 13+).
 | Save / load / compare | Save a scan to a `.smscan` file, re-open it (also imports `.gpscan`), and diff two scans (grown / shrunk / added / removed) |
 | Exclusions | Glob patterns (e.g. `node_modules`, `*.log`) skipped while scanning, set in Settings (⌘,) |
 | Safety | Safety stoppers block deletion of system-critical components and whole volumes |
+| Snapshots & purgeable | Review and delete local Time Machine snapshots and reclaim purgeable space (Tools menu, or the hidden-space panel) |
+| Quick Look | Preview any file with the **Spacebar** or ⌘Y |
+| Open With | Open a file in any compatible app from the context menu |
 | Privacy | Reads only file metadata (names & sizes); no content, no network, no analytics |
 
 ### Keyboard shortcuts
@@ -99,8 +102,9 @@ SpaceMonger/
     RecentScan.swift          A remembered location (security-scoped bookmark)
     ScanArchive.swift         Save / load a scan to a .smscan file
     ScanComparison.swift      Diff two scans
-    GPScanImporter.swift      Import a .gpscan file
+    GPScanImporter.swift      Import a .gpscan file (incl. gzip)
     FocusCriteria.swift       Focus-mask matching rules
+    SnapshotManager.swift     List/delete local snapshots, reclaim purgeable space
   ViewModels/
     ScanViewModel.swift       App state: scan lifecycle, navigation, collector
     RecentScansStore.swift    Persists & resolves recent scans
@@ -123,6 +127,7 @@ SpaceMonger/
     ComparisonView.swift      Scan diff sheet
     FocusPanelView.swift      Focus-mask popover
     TechSpecsView.swift       Tech Specs sheet
+    SnapshotsView.swift       Snapshots & purgeable-space sheet
   Utilities/
     Formatting.swift          Byte / percent / count formatting
     NodeColor.swift           Shared colour scheme (folder / type / depth)
@@ -131,6 +136,7 @@ SpaceMonger/
     DiskAccess.swift          Full Disk Access detection & Settings deep-link
     ExcludeMatcher.swift      Glob matching for exclusions
     SystemPaths.swift         Safety stoppers for system-critical paths
+    SpacebarQuickLook.swift   Finder-style spacebar Quick Look
     Localization.swift        loc() / locf() helpers
   *.lproj                     Localized UI strings (15 languages)
 PrivilegedHelper/             Optional XPC helper (out-of-target; see its README)
@@ -150,8 +156,10 @@ crosses into other mounted volumes, so figures stay accurate.
 Done: app icon, recent scans (security-scoped bookmarks), treemap view,
 colour-by-type/depth, content filter, focus masks, Full Disk Access flow,
 **administrator scan** of root-only files, exclude masks,
-**save / load / compare** scans, `.gpscan` import, concurrent scanning, safety
-stoppers, Tech Specs sheet, and English + Dutch localisation.
+**save / load / compare** scans, `.gpscan` import (incl. gzip-compressed),
+concurrent scanning, safety stoppers, **local snapshot & purgeable-space
+management** (`tmutil`), **spacebar Quick Look**, **Open With** menu, a
+localised Tech Specs sheet, and a 15-language UI.
 
 Still on the list:
 
@@ -160,6 +168,8 @@ Still on the list:
   in [`PrivilegedHelper/`](PrivilegedHelper/README.md) — it needs a paid Apple
   Developer ID to sign, so it's kept out of the default build.
 - Reading the few files that even root cannot access (rare).
+- Code-signing / notarisation pipeline and automated tests.
+- Native-speaker review of the translations.
 
 ## Tech Specs
 

@@ -16,6 +16,14 @@ struct FileInfoView: View {
                 if node.isRealFileSystemItem {
                     actions(node)
                 }
+                if node.isHiddenSpace {
+                    Button {
+                        vm.openSnapshots()
+                    } label: {
+                        Label("Manage snapshots & purgeable space…", systemImage: "clock.arrow.circlepath")
+                    }
+                    .controlSize(.small)
+                }
             } else {
                 Text("Nothing selected")
                     .foregroundStyle(.secondary)

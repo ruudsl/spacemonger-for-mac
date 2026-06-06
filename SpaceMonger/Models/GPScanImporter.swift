@@ -23,10 +23,11 @@ enum GPScanImporter {
     }
 
     static func importTree(from url: URL) throws -> (root: FileNode, name: String) {
-        let data = try Data(contentsOf: url)
-        // gzip magic number -> not supported.
+        var data = try Data(contentsOf: url)
+        // gzip magic number -> decompress first.
         if data.count >= 2, data[0] == 0x1f, data[1] == 0x8b {
-            throw ImportError.compressed
+            guard let inflated = gunzip(data) else { throw ImportError.compressed }
+            data = inflated
         }
 
         let parser = XMLParser(data: data)
@@ -46,6 +47,32 @@ enum GPScanImporter {
             if !leaf.isEmpty { name = leaf }
         }
         return (root, name)
+    }
+
+    /// Decompresses gzip data via `/usr/bin/gzip -dc`, reading output on a
+    /// background queue to avoid pipe-buffer deadlock on large files.
+    private static func gunzip(_ data: Data) -> Data? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/gzip")
+        process.arguments = ["-dc"]
+        let input = Pipe()
+        let output = Pipe()
+        process.standardInput = input
+        process.standardOutput = output
+        process.standardError = Pipe()
+        do { try process.run() } catch { return nil }
+
+        var outData = Data()
+        let semaphore = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            outData = output.fileHandleForReading.readDataToEndOfFile()
+            semaphore.signal()
+        }
+        input.fileHandleForWriting.write(data)
+        input.fileHandleForWriting.closeFile()
+        process.waitUntilExit()
+        semaphore.wait()
+        return process.terminationStatus == 0 ? outData : nil
     }
 
     /// Folder sizes aren't stored, so compute them from the files (post-order).

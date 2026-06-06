@@ -30,6 +30,9 @@ struct ContentView: View {
         .sheet(isPresented: $vm.showTechSpecs) {
             TechSpecsView { vm.showTechSpecs = false }
         }
+        .sheet(isPresented: $vm.showSnapshots) {
+            SnapshotsView()
+        }
         .alert("Something went wrong",
                isPresented: Binding(
                 get: { vm.lastError != nil },
@@ -68,6 +71,11 @@ private struct ResultsView: View {
                 DetailPanel()
                     .frame(minWidth: 280, idealWidth: 340, maxWidth: 460)
             }
+        }
+        .spacebarQuickLook {
+            guard let node = vm.selectedNode, node.isRealFileSystemItem else { return false }
+            vm.quickLook(node)
+            return true
         }
     }
 }
