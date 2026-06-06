@@ -33,7 +33,7 @@ struct ComparisonView: View {
                 let delta = comparison.totalDelta
                 Text(locf(loc("Total change: %@"), signedBytes(delta)))
                     .font(.callout.weight(.medium))
-                    .foregroundStyle(delta == 0 ? .secondary : (delta > 0 ? .red : .green))
+                    .foregroundStyle(delta == 0 ? Color.secondary : (delta > 0 ? Color.red : Color.green))
             }
             Spacer()
             Button(loc("Done"), action: onClose)
