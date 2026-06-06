@@ -17,6 +17,16 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { vm.loadVolumes() }
+        .overlay {
+            if vm.isComparing {
+                ProgressView("Comparing…")
+                    .padding(24)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        .sheet(item: $vm.comparison) { comparison in
+            ComparisonView(comparison: comparison) { vm.comparison = nil }
+        }
         .alert("Something went wrong",
                isPresented: Binding(
                 get: { vm.lastError != nil },
@@ -132,6 +142,7 @@ private struct AccessBanner: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            Button("Scan as Administrator") { vm.rescanAsAdministrator() }
             Button("Open Settings…") { DiskAccess.openFullDiskAccessSettings() }
             Button {
                 vm.dismissAccessBanner()

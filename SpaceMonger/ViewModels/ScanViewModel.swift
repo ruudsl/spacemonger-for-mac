@@ -49,6 +49,12 @@ final class ScanViewModel: ObservableObject {
     // Start screen
     @Published var volumes: [VolumeInfo] = []
     let recentScans = RecentScansStore()
+    let excludes = ExcludeStore()
+
+    // Save / load / compare
+    @Published var comparison: ScanComparison?
+    @Published private(set) var isComparing = false
+    @Published private(set) var loadedFromFile = false
 
     // Display options
     @Published var viewMode: ViewMode = .sunburst
@@ -142,7 +148,12 @@ final class ScanViewModel: ObservableObject {
         activeScopedURL = url
     }
 
-    private func startScan(url: URL, volume: VolumeInfo?) {
+    func rescanAsAdministrator() {
+        guard let url = scannedURL else { return }
+        startScan(url: url, volume: scannedVolume, privileged: true)
+    }
+
+    private func startScan(url: URL, volume: VolumeInfo?, privileged: Bool = false) {
         cancelScan()
 
         rootNode = nil
@@ -154,6 +165,7 @@ final class ScanViewModel: ObservableObject {
         scanSummary = nil
         unreadableDirectories = 0
         accessBannerDismissed = false
+        loadedFromFile = false
         scannedVolume = volume
         scannedURL = url
         scanProgress = nil
@@ -164,21 +176,39 @@ final class ScanViewModel: ObservableObject {
 
         let token = CancelToken()
         cancelToken = token
-        let scanner = DiskScanner()
+        let matcher = ExcludeMatcher(patterns: excludes.patterns)
         let start = Date()
 
         scanTask = Task.detached(priority: .userInitiated) {
             do {
-                let result = try scanner.scan(
-                    at: url,
-                    isCancelled: { token.isCancelled },
-                    progress: { progress in
-                        DispatchQueue.main.async {
-                            guard self.cancelToken === token else { return }
-                            self.scanProgress = progress
+                let result: DiskScanner.Result
+                if privileged {
+                    let root = try PrivilegedScanner.scan(
+                        at: url,
+                        exclude: matcher,
+                        isCancelled: { token.isCancelled },
+                        progress: { count in
+                            DispatchQueue.main.async {
+                                guard self.cancelToken === token else { return }
+                                self.scanProgress = .init(scannedItems: count, scannedBytes: 0,
+                                                          currentPath: loc("Reading as administrator…"))
+                            }
                         }
-                    }
-                )
+                    )
+                    result = DiskScanner.Result(root: root, unreadableDirectories: 0)
+                } else {
+                    let scanner = DiskScanner(exclude: matcher)
+                    result = try scanner.scan(
+                        at: url,
+                        isCancelled: { token.isCancelled },
+                        progress: { progress in
+                            DispatchQueue.main.async {
+                                guard self.cancelToken === token else { return }
+                                self.scanProgress = progress
+                            }
+                        }
+                    )
+                }
                 if token.isCancelled { return }
                 let elapsed = Date().timeIntervalSince(start)
                 DispatchQueue.main.async {
@@ -241,7 +271,10 @@ final class ScanViewModel: ObservableObject {
         rebuildSunburst()
 
         let count = scanProgress?.scannedItems ?? root.fileCount
-        scanSummary = "\(Formatting.count(count)) items · \(Formatting.bytes(root.size)) · scanned in \(String(format: "%.1f", elapsed))s"
+        scanSummary = locf(loc("%@ items · %@ · scanned in %@s"),
+                           Formatting.count(count),
+                           Formatting.bytes(root.size),
+                           String(format: "%.1f", elapsed))
     }
 
     /// Adds a synthetic node accounting for volume space we could not attribute
@@ -356,6 +389,73 @@ final class ScanViewModel: ObservableObject {
         guard node.isRealFileSystemItem else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(node.url.path, forType: .string)
+    }
+
+    // MARK: - Save / load / compare
+
+    var canSaveScan: Bool { rootNode != nil }
+    var suggestedFileName: String {
+        let base = scannedVolume?.name ?? rootNode?.name ?? "Scan"
+        return "\(base).\(ScanArchive.fileExtension)"
+    }
+
+    func saveCurrentScan(to url: URL) {
+        guard let root = rootNode else { return }
+        let name = scannedVolume?.name ?? root.name
+        do {
+            try ScanArchive(root: root, displayName: name).write(to: url)
+        } catch {
+            lastError = locf(loc("Couldn't save the scan: %@"), error.localizedDescription)
+        }
+    }
+
+    func openScan(from url: URL) {
+        do {
+            let archive = try ScanArchive.read(from: url)
+            cancelScan()
+            setScopedURL(nil)
+            let root = archive.makeTree()
+            root.sortBySizeDescending(recursive: true)
+
+            rootNode = root
+            focusNode = root
+            selectedNode = nil
+            hoveredNode = nil
+            collector = []
+            scannedVolume = nil
+            scannedURL = URL(fileURLWithPath: archive.rootPath)
+            unreadableDirectories = 0
+            accessBannerDismissed = true
+            loadedFromFile = true
+            scanState = .done
+            scanSummary = locf(loc("Loaded “%@” · %@"), archive.displayName, Formatting.bytes(root.size))
+            rebuildSunburst()
+        } catch {
+            lastError = locf(loc("Couldn't open the scan file: %@"), error.localizedDescription)
+        }
+    }
+
+    func compareWith(url: URL) {
+        guard let current = rootNode else { return }
+        isComparing = true
+        let currentName = scannedVolume?.name ?? current.name
+        Task.detached(priority: .userInitiated) {
+            do {
+                let archive = try ScanArchive.read(from: url)
+                let other = archive.makeTree()
+                let result = ScanComparison.compare(current: current, currentName: currentName,
+                                                    other: other, otherName: archive.displayName)
+                DispatchQueue.main.async {
+                    self.comparison = result
+                    self.isComparing = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.lastError = locf(loc("Couldn't open the scan file: %@"), error.localizedDescription)
+                    self.isComparing = false
+                }
+            }
+        }
     }
 
     func quickLook(_ node: FileNode?) {

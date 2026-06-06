@@ -18,7 +18,7 @@ final class FileNode: Identifiable, Hashable {
     let id = UUID()
     let url: URL
     let name: String
-    let kind: Kind
+    var kind: Kind
     /// `true` for application bundles and other file-system packages.
     let isPackage: Bool
 

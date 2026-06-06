@@ -26,7 +26,7 @@ struct FileListView: View {
                 Text("Contents")
                     .font(.subheadline.weight(.semibold))
                 Spacer()
-                Text("\(children.count) items")
+                Text(locf(loc("%lld items"), children.count))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

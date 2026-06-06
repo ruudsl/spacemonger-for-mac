@@ -7,6 +7,9 @@ import Foundation
 /// reported through a throttled callback and cancellation is cooperative.
 struct DiskScanner {
 
+    /// Item names matching any of these globs are skipped during the scan.
+    var exclude = ExcludeMatcher(patterns: [])
+
     struct Progress {
         var scannedItems: Int
         var scannedBytes: Int64
@@ -100,6 +103,8 @@ struct DiskScanner {
 
         for childURL in contents {
             if isCancelled() { throw CancellationError() }
+
+            if exclude.matches(name: childURL.lastPathComponent) { continue }
 
             let values = try? childURL.resourceValues(forKeys: Self.resourceKeys)
 

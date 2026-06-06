@@ -13,6 +13,7 @@
 "Enable Full Disk Access to scan system files" = "Schakel Volledige schijftoegang in om systeembestanden te scannen";
 "Open Settings…" = "Open Instellingen…";
 "Some system folders couldn't be read" = "Sommige systeemmappen konden niet worden gelezen";
+"Scan as Administrator" = "Scan als beheerder";
 
 "Contents" = "Inhoud";
 "Filter" = "Filter";
@@ -47,6 +48,7 @@
 "Preparing…" = "Voorbereiden…";
 "OK" = "OK";
 "Something went wrong" = "Er ging iets mis";
+"Comparing…" = "Vergelijken…";
 
 "Layout" = "Weergave";
 "Colour" = "Kleur";
@@ -58,5 +60,50 @@
 
 "Scan Folder…" = "Scan map…";
 "Rescan" = "Opnieuw scannen";
+"Rescan as Administrator" = "Opnieuw scannen als beheerder";
+"Open Scan…" = "Open scan…";
+"Save Scan…" = "Bewaar scan…";
+"Compare with Saved Scan…" = "Vergelijk met bewaarde scan…";
 "Item" = "Item";
 "View" = "Weergave";
+
+/* Instellingen */
+"Exclusions" = "Uitsluitingen";
+"Add pattern…" = "Patroon toevoegen…";
+"Add" = "Toevoegen";
+"No exclusions" = "Geen uitsluitingen";
+"Changes apply to the next scan." = "Wijzigingen gelden bij de volgende scan.";
+"Items whose name matches one of these glob patterns are skipped while scanning. Examples: node_modules, *.log, .DS_Store" = "Items waarvan de naam overeenkomt met een van deze glob-patronen worden tijdens het scannen overgeslagen. Voorbeelden: node_modules, *.log, .DS_Store";
+
+/* Vergelijking */
+"Comparison" = "Vergelijking";
+"Done" = "Klaar";
+"Grown" = "Gegroeid";
+"Added" = "Toegevoegd";
+"Shrunk" = "Gekrompen";
+"Removed" = "Verwijderd";
+
+"folder" = "map";
+"Reading as administrator…" = "Lezen als beheerder…";
+
+/* Fouten bij scan als beheerder */
+"Couldn't start the administrator scan." = "Kon de beheerdersscan niet starten.";
+"Administrator access was not granted." = "Beheerderstoegang werd niet verleend.";
+"The administrator scan produced no results." = "De beheerdersscan leverde geen resultaten op.";
+
+/* Opmaak */
+"%@ items · %@ · scanned in %@s" = "%@ items · %@ · gescand in %@s";
+"Scanning %@…" = "%@ scannen…";
+"%@ items · %@" = "%@ items · %@";
+"%lld items" = "%lld items";
+"Move %lld items to the Trash?" = "%lld items naar de prullenmand verplaatsen?";
+"This frees %@. Items go to the Trash, so you can still recover them." = "Dit maakt %@ vrij. Items gaan naar de prullenmand, dus je kunt ze nog terughalen.";
+"Move %lld to Trash" = "Verplaats %lld naar prullenmand";
+"%@ used" = "%@ gebruikt";
+"%@ free" = "%@ vrij";
+"Couldn't save the scan: %@" = "Kon de scan niet bewaren: %@";
+"Loaded “%@” · %@" = "Geladen “%@” · %@";
+"Couldn't open the scan file: %@" = "Kon het scanbestand niet openen: %@";
+"%@ (now) vs %@ (saved)" = "%@ (nu) vs %@ (bewaard)";
+"Total change: %@" = "Totale verandering: %@";
+"%@ (%lld)" = "%@ (%lld)";

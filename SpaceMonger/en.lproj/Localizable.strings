@@ -14,6 +14,7 @@
 "Enable Full Disk Access to scan system files" = "Enable Full Disk Access to scan system files";
 "Open Settings…" = "Open Settings…";
 "Some system folders couldn't be read" = "Some system folders couldn't be read";
+"Scan as Administrator" = "Scan as Administrator";
 
 "Contents" = "Contents";
 "Filter" = "Filter";
@@ -48,6 +49,7 @@
 "Preparing…" = "Preparing…";
 "OK" = "OK";
 "Something went wrong" = "Something went wrong";
+"Comparing…" = "Comparing…";
 
 "Layout" = "Layout";
 "Colour" = "Colour";
@@ -59,5 +61,49 @@
 
 "Scan Folder…" = "Scan Folder…";
 "Rescan" = "Rescan";
+"Rescan as Administrator" = "Rescan as Administrator";
+"Open Scan…" = "Open Scan…";
+"Save Scan…" = "Save Scan…";
+"Compare with Saved Scan…" = "Compare with Saved Scan…";
 "Item" = "Item";
 "View" = "View";
+
+/* Settings */
+"Exclusions" = "Exclusions";
+"Add pattern…" = "Add pattern…";
+"Add" = "Add";
+"No exclusions" = "No exclusions";
+"Changes apply to the next scan." = "Changes apply to the next scan.";
+
+/* Comparison */
+"Comparison" = "Comparison";
+"Done" = "Done";
+"Grown" = "Grown";
+"Added" = "Added";
+"Shrunk" = "Shrunk";
+"Removed" = "Removed";
+
+"folder" = "folder";
+"Reading as administrator…" = "Reading as administrator…";
+
+/* Privileged scan errors */
+"Couldn't start the administrator scan." = "Couldn't start the administrator scan.";
+"Administrator access was not granted." = "Administrator access was not granted.";
+"The administrator scan produced no results." = "The administrator scan produced no results.";
+
+/* Formats */
+"%@ items · %@ · scanned in %@s" = "%@ items · %@ · scanned in %@s";
+"Scanning %@…" = "Scanning %@…";
+"%@ items · %@" = "%@ items · %@";
+"%lld items" = "%lld items";
+"Move %lld items to the Trash?" = "Move %lld items to the Trash?";
+"This frees %@. Items go to the Trash, so you can still recover them." = "This frees %@. Items go to the Trash, so you can still recover them.";
+"Move %lld to Trash" = "Move %lld to Trash";
+"%@ used" = "%@ used";
+"%@ free" = "%@ free";
+"Couldn't save the scan: %@" = "Couldn't save the scan: %@";
+"Loaded “%@” · %@" = "Loaded “%@” · %@";
+"Couldn't open the scan file: %@" = "Couldn't open the scan file: %@";
+"%@ (now) vs %@ (saved)" = "%@ (now) vs %@ (saved)";
+"Total change: %@" = "Total change: %@";
+"%@ (%lld)" = "%@ (%lld)";

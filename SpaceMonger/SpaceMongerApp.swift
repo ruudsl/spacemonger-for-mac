@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 @main
 struct SpaceMongerApp: App {
@@ -20,6 +21,17 @@ struct SpaceMongerApp: App {
                 Button("Rescan") { vm.rescan() }
                     .keyboardShortcut("r", modifiers: [.command])
                     .disabled(vm.rescanDisabled)
+                Button("Rescan as Administrator") { vm.rescanAsAdministrator() }
+                    .keyboardShortcut("r", modifiers: [.command, .option])
+                    .disabled(vm.rescanDisabled)
+                Divider()
+                Button("Open Scan…") { openScan() }
+                    .keyboardShortcut("o", modifiers: [.command, .shift])
+                Button("Save Scan…") { saveScan() }
+                    .keyboardShortcut("s", modifiers: [.command])
+                    .disabled(!vm.canSaveScan)
+                Button("Compare with Saved Scan…") { compareScan() }
+                    .disabled(!vm.canSaveScan)
             }
             CommandMenu("View") {
                 Picker("Layout", selection: $vm.viewMode) {
@@ -41,7 +53,6 @@ struct SpaceMongerApp: App {
                 Button("Open") {
                     if let node = vm.selectedNode { vm.open(node) }
                 }
-                .keyboardShortcut("o", modifiers: [.command, .shift])
                 .disabled(vm.selectedNode == nil)
                 Button("Reveal in Finder") {
                     if let node = vm.selectedNode { vm.reveal(node) }
@@ -66,6 +77,17 @@ struct SpaceMongerApp: App {
                 .disabled(vm.selectedNode == nil)
             }
         }
+
+        Settings {
+            SettingsView()
+                .environmentObject(vm.excludes)
+        }
+    }
+
+    // MARK: - Panels
+
+    private var scanType: UTType {
+        UTType(filenameExtension: ScanArchive.fileExtension) ?? .json
     }
 
     private func chooseFolder() {
@@ -77,6 +99,40 @@ struct SpaceMongerApp: App {
         panel.message = "Choose a folder or disk to scan"
         if panel.runModal() == .OK, let url = panel.url {
             vm.scan(folder: url)
+        }
+    }
+
+    private func openScan() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [scanType, .json]
+        if panel.runModal() == .OK, let url = panel.url {
+            vm.openScan(from: url)
+        }
+    }
+
+    private func saveScan() {
+        guard vm.canSaveScan else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [scanType]
+        panel.nameFieldStringValue = vm.suggestedFileName
+        if panel.runModal() == .OK, let url = panel.url {
+            vm.saveCurrentScan(to: url)
+        }
+    }
+
+    private func compareScan() {
+        guard vm.canSaveScan else { return }
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [scanType, .json]
+        panel.message = "Choose a saved scan to compare against the current one"
+        if panel.runModal() == .OK, let url = panel.url {
+            vm.compareWith(url: url)
         }
     }
 }

@@ -37,14 +37,15 @@ struct CollectorView: View {
             handleDrop(providers)
         }
         .confirmationDialog(
-            "Move \(vm.collector.count) item\(vm.collector.count == 1 ? "" : "s") to the Trash?",
+            locf(loc("Move %lld items to the Trash?"), vm.collector.count),
             isPresented: $confirmDelete,
             titleVisibility: .visible
         ) {
             Button("Move to Trash", role: .destructive) { vm.deleteCollected() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This frees \(Formatting.bytes(vm.collectorTotalSize)). Items go to the Trash, so you can still recover them.")
+            Text(locf(loc("This frees %@. Items go to the Trash, so you can still recover them."),
+                      Formatting.bytes(vm.collectorTotalSize)))
         }
     }
 
@@ -112,7 +113,7 @@ struct CollectorView: View {
             Button {
                 confirmDelete = true
             } label: {
-                Label("Move \(vm.collector.count) to Trash", systemImage: "trash")
+                Label(locf(loc("Move %lld to Trash"), vm.collector.count), systemImage: "trash")
             }
             .controlSize(.small)
             .buttonStyle(.borderedProminent)

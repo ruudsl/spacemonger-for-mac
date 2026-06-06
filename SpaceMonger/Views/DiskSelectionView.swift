@@ -132,9 +132,9 @@ private struct DiskCard: View {
                 UsageBar(fraction: volume.usedFraction)
 
                 HStack {
-                    Text("\(Formatting.bytes(volume.usedCapacity)) used")
+                    Text(locf(loc("%@ used"), Formatting.bytes(volume.usedCapacity)))
                     Spacer()
-                    Text("\(Formatting.bytes(volume.availableCapacity)) free")
+                    Text(locf(loc("%@ free"), Formatting.bytes(volume.availableCapacity)))
                         .foregroundStyle(.secondary)
                 }
                 .font(.caption)

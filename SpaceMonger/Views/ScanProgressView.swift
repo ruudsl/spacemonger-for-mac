@@ -13,11 +13,13 @@ struct ScanProgressView: View {
                 .scaleEffect(1.4)
 
             VStack(spacing: 6) {
-                Text("Scanning \(vm.scannedVolume?.name ?? "folder")…")
+                Text(locf(loc("Scanning %@…"), vm.scannedVolume?.name ?? loc("folder")))
                     .font(.title3.weight(.semibold))
 
                 if let progress = vm.scanProgress {
-                    Text("\(Formatting.count(progress.scannedItems)) items · \(Formatting.bytes(progress.scannedBytes))")
+                    Text(locf(loc("%@ items · %@"),
+                              Formatting.count(progress.scannedItems),
+                              Formatting.bytes(progress.scannedBytes)))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()

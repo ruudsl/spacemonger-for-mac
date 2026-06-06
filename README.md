@@ -30,6 +30,7 @@ Modelled after the DaisyDisk user guide:
 | Quick Look | Space-style preview via the info panel, context menu, or ⌘Y |
 | Hidden / system space | A grey "System & hidden space" segment accounts for volume space not attributable to readable files |
 | Scanning system files | Detects missing **Full Disk Access**, flags unreadable folders with a lock badge, and offers a one-click button to open the right Settings pane |
+| Scan as Administrator | A **privileged scan** (authorized `du` as root) measures even root-only system files — prompts once for an admin password |
 | Recent scans | The start screen remembers recent disks/folders as **security-scoped bookmarks** so you can re-scan in one click |
 
 ### Beyond DaisyDisk — features inspired by [GrandPerspective](https://grandperspectiv.sourceforge.net/)
@@ -39,17 +40,21 @@ Modelled after the DaisyDisk user guide:
 | Treemap view | A squarified **Treemap** layout, switchable with the Sunburst (⌘1 / ⌘2) |
 | Colour by file type / depth | Colour modes: **By Folder**, **By File Type**, **By Depth** |
 | Filtering | A live **Filter** field over the folder contents |
+| Exclude masks | **Exclusions** in Settings (⌘,) — glob patterns like `node_modules`, `*.log` skipped while scanning |
 | Reveal / Open / Copy path | All available from the info panel and context menu |
 | Delete to Trash | Single items or the whole Collector |
+| Save / load scans | Save a scan to a `.smscan` file and re-open it later (⌘S / ⇧⌘O) |
+| Compare scans | Diff the current scan against a saved one (grown / shrunk / added / removed) |
 
-Not yet implemented from GrandPerspective (candidates for later): saving/loading
-scan files (`.gpscan`), comparing two scans, and advanced focus masks.
+Not yet implemented from GrandPerspective (candidates for later): importing
+GrandPerspective's own `.gpscan` files and advanced focus masks.
 
 ### Keyboard shortcuts
 
 - **⌘O** – Scan a folder…
-- **⌘R** – Rescan
-- **⌘1 / ⌘2** – Sunburst / Treemap view
+- **⌘R** – Rescan · **⌥⌘R** – Rescan as administrator
+- **⌘S** – Save scan · **⇧⌘O** – Open scan
+- **⌘,** – Settings (exclusions)
 - **⌘Y** – Quick Look the selection
 - **⇧⌘O** – Open the selection
 - **⇧⌘R** – Reveal the selection in Finder
@@ -87,6 +92,10 @@ The app is **not sandboxed**, so it scans whatever your account can read.
   (or Xcode while developing). Without it, protected system locations are not
   readable and will show up inside the "System & hidden space" segment.
 
+Alternatively, use **Rescan as Administrator** (⌥⌘R, or the banner button after
+a scan): this runs the measurement as root via an authorized `du`, so even
+root-only system files are counted. You're prompted once for an admin password.
+
 Deletions move items to the **Trash** (never an immediate hard delete), so they
 remain recoverable.
 
@@ -99,10 +108,14 @@ SpaceMonger/
     FileNode.swift            The scanned file tree (sizes, children, parent)
     VolumeInfo.swift          Mounted-volume discovery for the start screen
     DiskScanner.swift         Recursive, cancellable on-disk size measurement
+    PrivilegedScanner.swift   Administrator scan via authorized `du`
     RecentScan.swift          A remembered location (security-scoped bookmark)
+    ScanArchive.swift         Save / load a scan to a .smscan file
+    ScanComparison.swift      Diff two scans
   ViewModels/
     ScanViewModel.swift       App state: scan lifecycle, navigation, collector
     RecentScansStore.swift    Persists & resolves recent scans
+    ExcludeStore.swift        Persisted exclude patterns
   Sunburst/
     SunburstLayout.swift      Pure geometry: segments + hit-testing
     SunburstView.swift        Canvas rendering & pointer interaction
@@ -123,6 +136,9 @@ SpaceMonger/
     FinderActions.swift       Reveal in Finder / move to Trash
     QuickLookController.swift  Quick Look panel
     DiskAccess.swift          Full Disk Access detection & Settings deep-link
+    ExcludeMatcher.swift      Glob matching for exclusions
+    Localization.swift        loc() / locf() helpers
+  Views/… (incl. SettingsView, ComparisonView)
   en.lproj / nl.lproj         Localized UI strings (English + Dutch)
 tools/
   make_icon.py                Generates the app icon PNGs (pure stdlib)
@@ -136,16 +152,17 @@ crosses into other mounted volumes, so figures stay accurate.
 
 ## Roadmap / ideas
 
-Done since the first version: app icon, recent scans (security-scoped
-bookmarks), treemap view, colour-by-type/depth, content filter, Full Disk Access
-flow, and Dutch localisation.
+Done: app icon, recent scans (security-scoped bookmarks), treemap view,
+colour-by-type/depth, content filter, Full Disk Access flow, **administrator
+scan** of root-only files, **exclude masks**, **save / load / compare scans**,
+and English + Dutch localisation (static and dynamic strings).
 
 Still on the list:
 
-- A bundled privileged helper to read the few remaining root-only files
-- Saving / loading and comparing scans (GrandPerspective `.gpscan`)
-- Exclude lists / focus masks
-- More complete localisation of dynamic strings
+- A bundled XPC privileged helper (a more seamless alternative to the
+  authorized-`du` administrator scan, but needs Developer ID signing)
+- Importing GrandPerspective's own `.gpscan` files
+- Advanced focus masks
 
 ## License
 
