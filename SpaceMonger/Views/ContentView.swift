@@ -33,6 +33,9 @@ struct ContentView: View {
         .sheet(isPresented: $vm.showSnapshots) {
             SnapshotsView()
         }
+        .sheet(isPresented: $vm.showHelp) {
+            HelpView { vm.showHelp = false }
+        }
         .alert("Something went wrong",
                isPresented: Binding(
                 get: { vm.lastError != nil },

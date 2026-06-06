@@ -56,6 +56,7 @@ final class ScanViewModel: ObservableObject {
     @Published private(set) var isComparing = false
     @Published private(set) var loadedFromFile = false
     @Published var showTechSpecs = false
+    @Published var showHelp = false
 
     // Snapshots / purgeable space
     @Published var showSnapshots = false

@@ -80,6 +80,8 @@ struct SpaceMongerApp: App {
                 Button("Manage Local Snapshots…") { vm.openSnapshots() }
             }
             CommandGroup(replacing: .help) {
+                Button("SpaceMonger Help") { vm.showHelp = true }
+                    .keyboardShortcut("?", modifiers: [.command])
                 Button("SpaceMonger Tech Specs") { vm.showTechSpecs = true }
             }
         }

@@ -38,6 +38,8 @@ Built with **SwiftUI** (macOS 13+).
 | Quick Look | Preview any file with the **Spacebar** or ⌘Y |
 | Open With | Open a file in any compatible app from the context menu |
 | Privacy | Reads only file metadata (names & sizes); no content, no network, no analytics |
+| In-app guide | A built-in user guide under **Help → SpaceMonger Help** (⌘?) |
+| Full Disk Access | Status and a one-click link to the right pane, in **Settings** (⌘,) |
 
 ### Keyboard shortcuts
 
@@ -81,6 +83,8 @@ The app is **not sandboxed**, so it scans whatever your account can read.
   *System Settings → Privacy & Security → Full Disk Access* and add SpaceMonger
   (or Xcode while developing). Without it, protected system locations are not
   readable and will show up inside the "System & hidden space" segment.
+  SpaceMonger's own **Settings (⌘,)** shows the current status and has a button
+  that jumps straight to that pane.
 
 Alternatively, use **Rescan as Administrator** (⌥⌘R, or the banner button after
 a scan): this runs the measurement as root via an authorized `du`, so even
@@ -128,6 +132,7 @@ SpaceMonger/
     FocusPanelView.swift      Focus-mask popover
     TechSpecsView.swift       Tech Specs sheet
     SnapshotsView.swift       Snapshots & purgeable-space sheet
+    HelpView.swift            In-app user guide
   Utilities/
     Formatting.swift          Byte / percent / count formatting
     NodeColor.swift           Shared colour scheme (folder / type / depth)
