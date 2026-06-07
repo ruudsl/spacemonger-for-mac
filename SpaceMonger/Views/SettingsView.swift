@@ -28,6 +28,7 @@ struct SettingsView: View {
             hasFullDiskAccess = DiskAccess.hasFullDiskAccess()
             helperAvailable = PrivilegedHelperManager.isAvailable
         }
+        .onChange(of: settings.automaticUpdateChecks) { _ in vm.applyAutomaticChecks() }
     }
 
     // MARK: - Privileged helper (advanced)

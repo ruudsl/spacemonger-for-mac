@@ -667,14 +667,15 @@ final class ScanViewModel: ObservableObject {
         loadSnapshots()
     }
 
-    /// Runs once per launch: first time, ask for consent; afterwards check
-    /// silently if the user opted in.
+    /// Runs once per launch: first time, ask for consent; afterwards either let
+    /// Sparkle run its silent scheduled check, or (without Sparkle) do our own.
     func runStartupUpdateCheck() {
         guard !didRunStartupUpdate else { return }
         didRunStartupUpdate = true
+        applyAutomaticChecks()
         if !settings.didAskAboutUpdates {
             showUpdatePrompt = true
-        } else if settings.automaticUpdateChecks {
+        } else if settings.automaticUpdateChecks, !SparkleUpdater.shared.isSupported {
             performUpdateCheck(silent: true)
         }
     }
@@ -683,12 +684,25 @@ final class ScanViewModel: ObservableObject {
         settings.automaticUpdateChecks = enable
         settings.didAskAboutUpdates = true
         showUpdatePrompt = false
-        if enable { performUpdateCheck(silent: true) }
+        applyAutomaticChecks()
+        if enable, !SparkleUpdater.shared.isSupported { performUpdateCheck(silent: true) }
     }
 
-    /// Manual check (menu / Settings button): also reports "up to date".
+    /// Keeps Sparkle's scheduled-check setting in sync with the preference.
+    func applyAutomaticChecks() {
+        if SparkleUpdater.shared.isSupported {
+            SparkleUpdater.shared.setAutomaticChecks(settings.automaticUpdateChecks)
+        }
+    }
+
+    /// Manual check (menu / Settings button). Uses Sparkle's full updater UI
+    /// when available, otherwise the GitHub-Releases check.
     func checkForUpdates() {
-        performUpdateCheck(silent: false)
+        if SparkleUpdater.shared.isSupported {
+            SparkleUpdater.shared.checkForUpdates()
+        } else {
+            performUpdateCheck(silent: false)
+        }
     }
 
     private func performUpdateCheck(silent: Bool) {

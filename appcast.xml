@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sparkle update feed for SpaceMonger.
+  This is the SUFeedURL the app reads. Add a new <item> for each release.
+
+  Replace the placeholders:
+    • url            -> the GitHub Release asset (zip) download URL
+    • sparkle:version       -> CFBundleVersion (build number)
+    • sparkle:shortVersionString -> CFBundleShortVersionString (marketing)
+    • length         -> from `sign_update` (bytes)
+    • sparkle:edSignature   -> from `sign_update`
+  See Distribution/Sparkle.md.
+-->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>SpaceMonger</title>
+    <link>https://raw.githubusercontent.com/ruudsl/spacemonger-for-mac/main/appcast.xml</link>
+    <description>Most recent changes for SpaceMonger.</description>
+    <language>en</language>
+
+    <!-- Example item — fill in for your first Sparkle release.
+    <item>
+      <title>Version 1.1</title>
+      <pubDate>Mon, 01 Jan 2026 12:00:00 +0000</pubDate>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+        <ul><li>What changed in this release.</li></ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/ruudsl/spacemonger-for-mac/releases/download/v1.1/SpaceMonger-1.1.zip"
+        sparkle:version="2"
+        sparkle:shortVersionString="1.1"
+        length="0"
+        type="application/octet-stream"
+        sparkle:edSignature="REPLACE_WITH_SIGNATURE" />
+    </item>
+    -->
+  </channel>
+</rss>
