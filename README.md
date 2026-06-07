@@ -173,6 +173,7 @@ tools/
   make_icon.py                Generates the app icon PNGs (pure stdlib)
   make_locales.py             Generates every Localizable.strings (source of truth)
   make_demo_tree.sh           Creates a neutral demo folder for screenshots
+  check_locales.py            Validates translations (keys, %@/%lld, empties)
 ```
 
 ## How sizing works
@@ -207,9 +208,10 @@ These are built in but need extra setup or a signing identity:
 
 - Deep memory optimisation for multi-million-file disks, and a true streaming
   tree (results filling in live while scanning).
-- **Native-speaker review** of the translations — they are machine-quality
-  today; all strings live in the `.lproj` files / `tools/make_locales.py`, so
-  reviewers can edit them without touching code.
+- **Native-speaker review** of the translations — they are machine-quality today
+  but **structurally validated** (every language has all keys, with matching
+  `%@`/`%lld` and no empties; CI enforces this). Reviewers can improve any
+  language without touching code — see [`TRANSLATIONS.md`](TRANSLATIONS.md).
 
 ## Tech Specs
 

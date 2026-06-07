@@ -1,0 +1,37 @@
+name: Localizations
+
+# Validates translations so native-speaker edits can be reviewed safely.
+on:
+  push:
+    paths:
+      - "SpaceMonger/**/*.strings"
+      - "SpaceMonger/**/*.stringsdict"
+      - "tools/make_locales.py"
+      - "tools/check_locales.py"
+  pull_request:
+    paths:
+      - "SpaceMonger/**/*.strings"
+      - "SpaceMonger/**/*.stringsdict"
+      - "tools/make_locales.py"
+      - "tools/check_locales.py"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Validate localizations
+        run: python3 tools/check_locales.py
+
+      - name: Ensure generated files match make_locales.py
+        run: |
+          python3 tools/make_locales.py
+          if ! git diff --quiet -- 'SpaceMonger/*.lproj/Localizable.strings'; then
+            echo "::error::Generated .strings are out of sync. Edit tools/make_locales.py and run it."
+            git --no-pager diff -- 'SpaceMonger/*.lproj/Localizable.strings'
+            exit 1
+          fi
