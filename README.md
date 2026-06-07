@@ -20,18 +20,24 @@ Or [build it yourself](#building) from source.
 
 ## Screenshots
 
-Add your own screenshots to `docs/screenshots/` and reference them here, e.g.:
+The **sunburst** map — ring size is proportional to on-disk usage; the right
+panel shows item details, the ranked contents list and the Collector:
 
-<!--
-![Sunburst](docs/screenshots/sunburst.png)
+![Sunburst map](docs/screenshots/sunburst.png)
+
+The **treemap** layout (cushion-shaded) is an alternative to the sunburst:
+
 ![Treemap](docs/screenshots/treemap.png)
-![Start screen](docs/screenshots/start.png)
--->
 
-> 💡 A disk map shows real file and folder **names and paths**, which may be
-> personal data. Before publishing screenshots, scan a demo folder or a test
-> account, or redact/blur anything private. See
-> [`docs/screenshots/README.md`](docs/screenshots/README.md).
+**Settings** — units, default view/colours, Full Disk Access, the privileged
+helper and exclusions:
+
+<p align="center"><img src="docs/screenshots/settings.png" alt="Settings" width="380"></p>
+
+> 💡 These were taken on a privacy-free demo folder created with
+> [`tools/make_demo_tree.sh`](tools/make_demo_tree.sh). A disk map shows real
+> file/folder names and paths, so prefer a demo folder or redact private names —
+> see [`docs/screenshots/README.md`](docs/screenshots/README.md).
 
 ## Features
 
