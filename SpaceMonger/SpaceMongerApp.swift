@@ -91,6 +91,7 @@ struct SpaceMongerApp: App {
 
         Settings {
             SettingsView()
+                .environmentObject(vm)
                 .environmentObject(vm.excludes)
                 .environmentObject(vm.settings)
         }

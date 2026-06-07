@@ -16,7 +16,10 @@ struct ContentView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear { vm.loadVolumes() }
+        .onAppear {
+            vm.loadVolumes()
+            vm.runStartupUpdateCheck()
+        }
         .overlay {
             if vm.isComparing {
                 ProgressView("Comparing…")
@@ -51,6 +54,22 @@ struct ContentView: View {
             Button("OK", role: .cancel) { vm.updateMessage = nil }
         } message: {
             Text(vm.updateMessage ?? "")
+        }
+        .alert("Check for Updates Automatically?", isPresented: $vm.showUpdatePrompt) {
+            Button("Check Automatically") { vm.answerUpdatePrompt(enable: true) }
+            Button("Not Now", role: .cancel) { vm.answerUpdatePrompt(enable: false) }
+        } message: {
+            Text("SpaceMonger can check GitHub for new releases when it launches. You can change this later in Settings.")
+        }
+        .alert("Update Available",
+               isPresented: Binding(
+                get: { vm.pendingUpdate != nil },
+                set: { if !$0 { vm.pendingUpdate = nil } }),
+               presenting: vm.pendingUpdate) { update in
+            Button("Download") { vm.openRelease(update.url) }
+            Button("Later", role: .cancel) { vm.pendingUpdate = nil }
+        } message: { update in
+            Text(locf(loc("Version %@ is available. You have %@."), update.version, update.current))
         }
     }
 }

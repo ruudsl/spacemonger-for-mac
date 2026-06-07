@@ -66,7 +66,18 @@ final class ScanViewModel: ObservableObject {
 
     // Snapshots / purgeable space
     @Published var showSnapshots = false
+
+    // Updates
     @Published var updateMessage: String?
+    @Published var showUpdatePrompt = false
+    @Published var pendingUpdate: PendingUpdate?
+    struct PendingUpdate: Identifiable {
+        let id = UUID()
+        let version: String
+        let current: String
+        let url: URL?
+    }
+    private var didRunStartupUpdate = false
     @Published private(set) var snapshots: [SnapshotManager.LocalSnapshot] = []
     @Published private(set) var purgeableBytes: Int64 = 0
     @Published private(set) var isWorkingSnapshots = false
@@ -656,23 +667,53 @@ final class ScanViewModel: ObservableObject {
         loadSnapshots()
     }
 
+    /// Runs once per launch: first time, ask for consent; afterwards check
+    /// silently if the user opted in.
+    func runStartupUpdateCheck() {
+        guard !didRunStartupUpdate else { return }
+        didRunStartupUpdate = true
+        if !settings.didAskAboutUpdates {
+            showUpdatePrompt = true
+        } else if settings.automaticUpdateChecks {
+            performUpdateCheck(silent: true)
+        }
+    }
+
+    func answerUpdatePrompt(enable: Bool) {
+        settings.automaticUpdateChecks = enable
+        settings.didAskAboutUpdates = true
+        showUpdatePrompt = false
+        if enable { performUpdateCheck(silent: true) }
+    }
+
+    /// Manual check (menu / Settings button): also reports "up to date".
     func checkForUpdates() {
-        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        performUpdateCheck(silent: false)
+    }
+
+    private func performUpdateCheck(silent: Bool) {
+        let current = UpdateChecker.currentVersion
         Task {
-            let latest = await UpdateChecker.latestVersion()
+            let release = await UpdateChecker.latestRelease()
             DispatchQueue.main.async {
-                guard let latest else {
-                    self.updateMessage = loc("Couldn't check for updates.")
+                guard let release else {
+                    if !silent { self.updateMessage = loc("Couldn't check for updates.") }
                     return
                 }
-                let norm = UpdateChecker.normalized(latest)
-                if norm.compare(current, options: .numeric) == .orderedDescending {
-                    self.updateMessage = locf(loc("Version %@ is available. You have %@."), norm, current)
-                } else {
+                if UpdateChecker.isNewer(release.version, than: current) {
+                    self.pendingUpdate = PendingUpdate(
+                        version: UpdateChecker.normalized(release.version),
+                        current: current, url: release.url)
+                } else if !silent {
                     self.updateMessage = loc("You're up to date.")
                 }
             }
         }
+    }
+
+    func openRelease(_ url: URL?) {
+        NSWorkspace.shared.open(url ?? UpdateChecker.releasesPage)
+        pendingUpdate = nil
     }
 
     func loadSnapshots() {

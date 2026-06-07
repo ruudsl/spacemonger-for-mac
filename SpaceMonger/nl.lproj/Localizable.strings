@@ -223,3 +223,15 @@
 "Not installed" = "Niet geïnstalleerd";
 "Install…" = "Installeer…";
 "Remove" = "Verwijderen";
+
+/* Automatische updates */
+"Software Update" = "Software-update";
+"Check for Updates Automatically?" = "Automatisch op updates controleren?";
+"Check Automatically" = "Automatisch controleren";
+"Not Now" = "Niet nu";
+"SpaceMonger can check GitHub for new releases when it launches. You can change this later in Settings." = "SpaceMonger kan bij het opstarten op GitHub naar nieuwe releases zoeken. Je kunt dit later in Instellingen wijzigen.";
+"Update Available" = "Update beschikbaar";
+"Download" = "Download";
+"Later" = "Later";
+"Check for updates automatically" = "Automatisch op updates controleren";
+"Check Now" = "Nu controleren";

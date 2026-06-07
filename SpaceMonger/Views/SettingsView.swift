@@ -3,6 +3,7 @@ import AppKit
 
 /// Preferences: general options, Full Disk Access status, and exclude patterns.
 struct SettingsView: View {
+    @EnvironmentObject var vm: ScanViewModel
     @EnvironmentObject var excludes: ExcludeStore
     @EnvironmentObject var settings: AppSettings
     @State private var newPattern = ""
@@ -79,6 +80,12 @@ struct SettingsView: View {
             Toggle("Follow symbolic links", isOn: $settings.followSymlinks)
             Toggle("Confirm before deleting", isOn: $settings.confirmBeforeDelete)
             Toggle("Colour-blind palette", isOn: $settings.colorBlindPalette)
+
+            HStack {
+                Toggle("Check for updates automatically", isOn: $settings.automaticUpdateChecks)
+                Spacer()
+                Button("Check Now") { vm.checkForUpdates() }
+            }
         }
     }
 

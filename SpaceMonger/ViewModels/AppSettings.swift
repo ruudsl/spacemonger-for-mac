@@ -39,6 +39,15 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(defaultColorModeRaw, forKey: "defaultColorMode") }
     }
 
+    /// Check GitHub Releases for a newer version on launch.
+    @Published var automaticUpdateChecks: Bool {
+        didSet { defaults.set(automaticUpdateChecks, forKey: "automaticUpdateChecks") }
+    }
+    /// Whether we've shown the first-run "check automatically?" prompt yet.
+    @Published var didAskAboutUpdates: Bool {
+        didSet { defaults.set(didAskAboutUpdates, forKey: "didAskAboutUpdates") }
+    }
+
     private let defaults = UserDefaults.standard
 
     init() {
@@ -49,6 +58,8 @@ final class AppSettings: ObservableObject {
         colorBlindPalette = defaults.bool(forKey: "colorBlindPalette")
         defaultViewModeRaw = defaults.string(forKey: "defaultViewMode") ?? "sunburst"
         defaultColorModeRaw = defaults.string(forKey: "defaultColorMode") ?? "rainbow"
+        automaticUpdateChecks = defaults.bool(forKey: "automaticUpdateChecks")
+        didAskAboutUpdates = defaults.bool(forKey: "didAskAboutUpdates")
 
         // Apply to the global helpers (didSet doesn't run during init).
         Formatting.useBinaryUnits = useBinaryUnits

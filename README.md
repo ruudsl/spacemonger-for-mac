@@ -48,6 +48,7 @@ Or [build it yourself](#building) from source.
 | Privacy | Reads only file metadata (names & sizes); no content, no network, no analytics |
 | In-app guide | A built-in user guide under **Help → SpaceMonger Help** (⌘?) |
 | Full Disk Access | Status and a one-click link to the right pane, in **Settings** (⌘,) |
+| Automatic updates | Asks once on first launch, then checks GitHub Releases on startup (toggle + "Check Now" in Settings); shows a **Download** button when a newer version exists |
 
 ### Keyboard shortcuts
 
