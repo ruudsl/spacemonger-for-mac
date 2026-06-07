@@ -193,7 +193,10 @@ These are built in but need extra setup or a signing identity:
   [`PrivilegedHelper/`](PrivilegedHelper/README.md).
 - **Sandboxed App Store variant** — opt-in entitlements + guide in
   [`Distribution/Sandboxing.md`](Distribution/Sandboxing.md).
-- **CI / notarisation** — `.github/workflows/` + `scripts/notarize.sh`.
+- **One-push releases** — push a tag (`git tag v1.1 && git push origin v1.1`) and
+  `.github/workflows/release.yml` builds, Developer-ID signs, notarizes, packages
+  a zip + DMG, Sparkle-signs the zip, creates the GitHub Release, and updates
+  `appcast.xml` on `main`. Needs the signing/Sparkle secrets (see the workflow).
 - **String Catalog** — a converter, `tools/make_xcstrings.py`.
 
 ## Roadmap

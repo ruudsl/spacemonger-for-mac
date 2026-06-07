@@ -1,27 +1,47 @@
 name: Release
 
-# Builds, signs, notarizes and packages a DMG when you push a version tag
-# (e.g. `v1.0`). Requires these repository secrets:
-#   BUILD_CERTIFICATE_BASE64   - Developer ID Application .p12, base64-encoded
-#   P12_PASSWORD               - password for that .p12
-#   KEYCHAIN_PASSWORD          - any throwaway password for the temp keychain
-#   DEVELOPMENT_TEAM           - your 10-character Team ID
-#   AC_NOTARY_PROFILE_JSON     - not used here; we pass the three values below
-#   APPLE_ID                   - Apple ID e-mail for notarization
-#   APPLE_APP_PASSWORD         - app-specific password for that Apple ID
+# Push a version tag (e.g. `v1.1`) and this builds, Developer-ID signs,
+# notarizes, packages a Sparkle zip + a DMG, signs the zip with Sparkle's
+# sign_update, creates the GitHub Release with those assets, and appends a new
+# <item> to appcast.xml on main. Publishing then = one tag push.
 #
-# This file is a template: adjust to your signing identity. It is intentionally
-# not run on normal pushes.
+# Required repository secrets:
+#   BUILD_CERTIFICATE_BASE64  Developer ID Application .p12, base64-encoded
+#   P12_PASSWORD              password for that .p12
+#   KEYCHAIN_PASSWORD         any throwaway password for the temp keychain
+#   DEVELOPMENT_TEAM          your 10-character Team ID
+#   APPLE_ID                  Apple ID e-mail for notarization
+#   APPLE_APP_PASSWORD        app-specific password for that Apple ID
+#   SPARKLE_PRIVATE_KEY       EdDSA private key string from Sparkle's generate_keys
 
 on:
   push:
-    tags: [ "v*" ]
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: SpaceMonger
+  SPARKLE_VERSION: "2.6.4"
 
 jobs:
   release:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive version
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "zip=${APP_NAME}-${VERSION}.zip" >> "$GITHUB_OUTPUT"
+          echo "dmg=${APP_NAME}-${VERSION}.dmg" >> "$GITHUB_OUTPUT"
 
       - name: Import signing certificate
         env:
@@ -30,13 +50,13 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           set -euo pipefail
-          CERT_PATH="$RUNNER_TEMP/cert.p12"
+          CERT="$RUNNER_TEMP/cert.p12"
           KEYCHAIN="$RUNNER_TEMP/app.keychain-db"
-          echo "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          echo "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
           security set-keychain-settings -lut 21600 "$KEYCHAIN"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
-          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security import "$CERT" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
           security list-keychain -d user -s "$KEYCHAIN"
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
 
@@ -49,21 +69,90 @@ jobs:
             -project SpaceMonger.xcodeproj \
             -scheme SpaceMonger \
             -configuration Release \
-            -archivePath "$RUNNER_TEMP/SpaceMonger.xcarchive" \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            MARKETING_VERSION="${{ steps.ver.outputs.version }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.ver.outputs.build }}" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             archive
 
-      - name: Export, package & notarize
+      - name: Export Developer ID app
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>developer-id</string>
+            <key>teamID</key><string>${{ secrets.DEVELOPMENT_TEAM }}</string>
+            <key>signingStyle</key><string>manual</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+
+      - name: Notarize & staple
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
-        run: bash scripts/notarize.sh "$RUNNER_TEMP/SpaceMonger.xcarchive"
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/export/${APP_NAME}.app"
+          ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/notarize.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
+            --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" \
+            --team-id "$DEVELOPMENT_TEAM" --wait
+          xcrun stapler staple "$APP"
 
-      - name: Upload DMG
-        uses: actions/upload-artifact@v4
+      - name: Package zip + dmg
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/export/${APP_NAME}.app"
+          mkdir -p dist
+          ditto -c -k --keepParent "$APP" "dist/${{ steps.ver.outputs.zip }}"
+          hdiutil create -volname "$APP_NAME" -srcfolder "$APP" -ov -format UDZO "dist/${{ steps.ver.outputs.dmg }}"
+
+      - name: Sparkle sign update
+        id: sparkle
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" -o sparkle.tar.xz
+          mkdir -p sparkle && tar -xf sparkle.tar.xz -C sparkle
+          printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_ed_key"
+          OUT="$(sparkle/bin/sign_update "dist/${{ steps.ver.outputs.zip }}" --ed-key-file "$RUNNER_TEMP/sparkle_ed_key")"
+          echo "sign_update: $OUT"
+          SIG="$(printf '%s' "$OUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')"
+          LEN="$(printf '%s' "$OUT" | sed -n 's/.*length="\([^"]*\)".*/\1/p')"
+          echo "signature=$SIG" >> "$GITHUB_OUTPUT"
+          echo "length=$LEN" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: SpaceMonger-dmg
-          path: build/SpaceMonger.dmg
+          generate_release_notes: true
+          files: |
+            dist/${{ steps.ver.outputs.zip }}
+            dist/${{ steps.ver.outputs.dmg }}
+
+      - name: Update appcast on main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+          python3 scripts/update_appcast.py \
+            --version "${{ steps.ver.outputs.version }}" \
+            --build "${{ steps.ver.outputs.build }}" \
+            --url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${{ steps.ver.outputs.zip }}" \
+            --length "${{ steps.sparkle.outputs.length }}" \
+            --signature "${{ steps.sparkle.outputs.signature }}"
+          git add appcast.xml
+          git commit -m "Update appcast for ${GITHUB_REF_NAME}" || echo "appcast unchanged"
+          git push origin HEAD:main

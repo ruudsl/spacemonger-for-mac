@@ -58,8 +58,24 @@ Hardened Runtime stays **on**.
    asset URL, and the signature/length from step 4, then commit it.
 
 Sparkle reads `appcast.xml` at `SUFeedURL`, compares versions, and offers the
-update. You can automate steps 4–5 in CI with Sparkle's `generate_appcast`
-(store the private key as a secret).
+update.
+
+## Fully automated releases (recommended)
+
+`.github/workflows/release.yml` does steps 4–5 for you. Add the repository
+secret **`SPARKLE_PRIVATE_KEY`** (the private key string from `generate_keys`),
+plus the Developer ID / notarization secrets listed at the top of that file.
+Then publishing a new version is just:
+
+```sh
+# bump the tag; the workflow builds, signs, notarizes, packages, Sparkle-signs,
+# creates the GitHub Release, and appends a new <item> to appcast.xml on main.
+git tag v1.1
+git push origin v1.1
+```
+
+`appcast.xml` lives on `main` (the `SUFeedURL`), so make sure this branch and
+the workflow are merged to `main` before tagging.
 
 ## How the app behaves
 
