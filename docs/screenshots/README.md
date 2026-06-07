@@ -26,7 +26,16 @@ which can be personal data (your name in a path, client/project names, etc.).
 
 Safer options:
 
-- Scan a **demo folder** you create on purpose, or a fresh **test user account**.
-- Scan a small **external/USB disk** with non-personal content.
+- **Generate a privacy-free demo folder** and scan that:
+
+  ```sh
+  tools/make_demo_tree.sh                 # ~/Desktop/SpaceMonger Demo (~450 MB)
+  SCALE=2 tools/make_demo_tree.sh ~/Desktop/"Demo"   # bigger
+  ```
+
+  It contains only dummy files (Photos, Videos, Music, a web project with
+  `node_modules`, an app bundle, …) with varied sizes/types so the map looks
+  good. Drag it to the Trash when you're done.
+- Or scan a fresh **test user account** or a small **external/USB disk**.
 - **Redact or blur** sensitive names before committing (the app's colour-blocks
   read fine even with names blurred).

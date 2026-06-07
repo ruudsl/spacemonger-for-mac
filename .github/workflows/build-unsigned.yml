@@ -1,0 +1,45 @@
+name: Build (unsigned artifact)
+
+# Try the pipeline before you have any Developer ID / Sparkle secrets.
+# Run it manually (Actions ▸ "Build (unsigned artifact)" ▸ Run workflow); it
+# builds an UNSIGNED app and uploads it as a downloadable zip artifact.
+#
+# Note: an unsigned app triggers Gatekeeper. To open it once, right-click the
+# app ▸ Open, or run: xattr -dr com.apple.quarantine SpaceMonger.app
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["*-test"]
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (no signing)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project SpaceMonger.xcodeproj \
+            -scheme SpaceMonger \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package zip
+        run: |
+          set -euo pipefail
+          APP="build/Build/Products/Release/SpaceMonger.app"
+          mkdir -p dist
+          ditto -c -k --keepParent "$APP" "dist/SpaceMonger-unsigned.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpaceMonger-unsigned
+          path: dist/SpaceMonger-unsigned.zip
+          if-no-files-found: error

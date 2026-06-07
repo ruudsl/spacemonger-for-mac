@@ -172,6 +172,7 @@ PrivilegedHelper/             Optional XPC helper (out-of-target; see its README
 tools/
   make_icon.py                Generates the app icon PNGs (pure stdlib)
   make_locales.py             Generates every Localizable.strings (source of truth)
+  make_demo_tree.sh           Creates a neutral demo folder for screenshots
 ```
 
 ## How sizing works
@@ -197,6 +198,9 @@ These are built in but need extra setup or a signing identity:
   `.github/workflows/release.yml` builds, Developer-ID signs, notarizes, packages
   a zip + DMG, Sparkle-signs the zip, creates the GitHub Release, and updates
   `appcast.xml` on `main`. Needs the signing/Sparkle secrets (see the workflow).
+- **Unsigned test build** — `.github/workflows/build-unsigned.yml` (run manually
+  from the Actions tab) builds an unsigned app and uploads it as a zip artifact,
+  so you can try the pipeline before getting a Developer ID.
 - **String Catalog** — a converter, `tools/make_xcstrings.py`.
 
 ## Roadmap
