@@ -52,6 +52,17 @@ a:hover { text-decoration: underline; }
 }
 .nav-cta:hover { background: #2e8ae6; }
 
+.lang-select {
+  background: var(--bg-soft);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.lang-select:hover { border-color: var(--muted); }
+
 /* Hero */
 .hero {
   position: relative;

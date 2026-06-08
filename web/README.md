@@ -4,7 +4,11 @@ A self-contained static site (no build step) for promoting and downloading the
 app. The Download buttons fetch the **latest GitHub Release** at runtime and
 point at its `.dmg` (or `.zip`) asset, falling back to the releases page.
 
-Files: `index.html`, `styles.css`, `script.js`, `icon*.png`, `shots/`.
+Files: `index.html`, `styles.css`, `script.js`, `i18n.js`, `icon*.png`, `shots/`.
+
+The page is **localized into all 15 app languages** (`i18n.js`): it auto-detects
+the visitor's browser language and offers a language switcher in the nav (the
+choice is remembered). To tweak wording, edit the `DICT` object in `i18n.js`.
 
 ## Deploy on Vercel
 

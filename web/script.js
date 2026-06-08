@@ -1,5 +1,5 @@
 // Point every Download button at the newest GitHub Release asset (the .dmg if
-// present, else .zip), and show the version. Falls back to the releases page.
+// present, else .zip). i18n.js renders the localized version label.
 (function () {
   const REPO = "ruudsl/spacemonger-for-mac";
   const FALLBACK = `https://github.com/${REPO}/releases/latest`;
@@ -27,11 +27,8 @@
       buttons.forEach((b) => (b.href = url));
 
       const tag = (release.tag_name || "").replace(/^v/, "");
-      if (tag) {
-        const meta = document.getElementById("heroMeta");
-        if (meta) meta.textContent =
-          `Latest: v${tag} · Free & open source · macOS 13+ · Apple Silicon & Intel`;
-      }
+      window.__latest = { version: tag, url: url };
+      if (typeof window.renderMeta === "function") window.renderMeta();
     })
     .catch(() => {
       buttons.forEach((b) => (b.href = FALLBACK));
