@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpaceMonger — Find it. Free it.</title>
+  <meta name="description" content="A free, native macOS disk-usage analyzer. See exactly what's filling your disk as an interactive sunburst or treemap, and reclaim the space — quickly and safely." />
+
+  <link rel="icon" href="icon.png" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:title" content="SpaceMonger — Find it. Free it." />
+  <meta property="og:description" content="A free, native macOS disk-usage analyzer. Reclaim space — quickly and safely." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/ruudsl/spacemonger-for-mac/main/docs/screenshots/sunburst.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top">
+      <img src="icon.png" width="32" height="32" alt="" />
+      <span>SpaceMonger</span>
+    </a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#screenshots">Screenshots</a>
+      <a href="https://github.com/ruudsl/spacemonger-for-mac" target="_blank" rel="noopener">GitHub</a>
+      <a class="nav-cta" id="navDownload" href="https://github.com/ruudsl/spacemonger-for-mac/releases/latest">Download</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <img class="hero-icon" src="icon-512.png" width="128" height="128" alt="SpaceMonger app icon" />
+      <h1>Find it. <span class="grad">Free it.</span></h1>
+      <p class="tagline">
+        See exactly what's filling your Mac's disk as an interactive
+        <strong>sunburst</strong> or <strong>treemap</strong>, and reclaim the
+        space — quickly and safely.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" id="heroDownload" href="https://github.com/ruudsl/spacemonger-for-mac/releases/latest">
+          Download for macOS
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/ruudsl/spacemonger-for-mac" target="_blank" rel="noopener">
+          View source
+        </a>
+      </div>
+      <p class="meta" id="heroMeta">Free &amp; open source · macOS 13+ · Apple Silicon &amp; Intel</p>
+      <p class="meta-os" id="osHint" hidden>Looks like you're not on a Mac — SpaceMonger is a macOS app.</p>
+    </section>
+
+    <section id="screenshots" class="shots">
+      <figure>
+        <img loading="lazy" src="shots/sunburst.png" alt="Sunburst map of a disk scan" />
+        <figcaption>The sunburst map — ring size is proportional to on-disk usage.</figcaption>
+      </figure>
+      <figure>
+        <img loading="lazy" src="shots/treemap.png" alt="Treemap layout of a disk scan" />
+        <figcaption>Or a cushion-shaded treemap — switch layouts in one click.</figcaption>
+      </figure>
+    </section>
+
+    <section id="features" class="features">
+      <h2>Everything you need to clean up your disk</h2>
+      <div class="grid">
+        <div class="card"><h3>🌅 Sunburst &amp; treemap</h3><p>Two interactive maps. Zoom in/out, hover for details, colour by folder, file type or depth.</p></div>
+        <div class="card"><h3>⚡ Fast, concurrent scans</h3><p>Multi-core measurement of real on-disk sizes, with live progress and cancel.</p></div>
+        <div class="card"><h3>🗑️ The Collector</h3><p>Drag files in, then move them all to the Trash at once. Safety stoppers protect system files.</p></div>
+        <div class="card"><h3>🔒 System &amp; hidden space</h3><p>Full Disk Access flow, administrator scan, and local snapshot / purgeable cleanup.</p></div>
+        <div class="card"><h3>🎯 Focus &amp; filters</h3><p>Highlight files by name, type or size. Exclude patterns like <code>node_modules</code>.</p></div>
+        <div class="card"><h3>💾 Save &amp; compare</h3><p>Save scans, re-open them (incl. <code>.gpscan</code>), and diff two scans.</p></div>
+        <div class="card"><h3>👁️ Quick Look &amp; Open With</h3><p>Preview with Space, reveal in Finder, copy path, open in any app.</p></div>
+        <div class="card"><h3>🌍 15 languages</h3><p>English, Nederlands, Deutsch, Français, 日本語, 简体中文 and more.</p></div>
+        <div class="card"><h3>🛡️ Private by design</h3><p>Reads only file metadata — names &amp; sizes. Nothing leaves your Mac. No analytics.</p></div>
+      </div>
+    </section>
+
+    <section class="download" id="download">
+      <div class="download-inner">
+        <h2>Ready to reclaim some space?</h2>
+        <p>Free, open source, and notarized for macOS.</p>
+        <a class="btn btn-primary btn-lg" id="footDownload" href="https://github.com/ruudsl/spacemonger-for-mac/releases/latest">
+          Download for macOS
+        </a>
+        <p class="fineprint">
+          Requires macOS 13 Ventura or newer. If the app is opened the first time
+          and macOS warns it's from an unidentified developer, right-click the
+          app ▸ <em>Open</em>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <img src="icon.png" width="24" height="24" alt="" />
+    <span>SpaceMonger · MIT licensed ·
+      <a href="https://github.com/ruudsl/spacemonger-for-mac" target="_blank" rel="noopener">GitHub</a>
+    </span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -18,6 +18,11 @@ Grab the latest build from the releases page:
 
 Or [build it yourself](#building) from source.
 
+There's also a ready-to-deploy **landing page** in [`web/`](web/) (static, no
+build) whose download button always tracks your newest release — deploy it to
+Vercel in a minute (set the project's *Root Directory* to `web`). See
+[`web/README.md`](web/README.md).
+
 ## Screenshots
 
 The **sunburst** map — ring size is proportional to on-disk usage; the right
