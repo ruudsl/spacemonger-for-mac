@@ -4,17 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SpaceMonger — Find it. Free it.</title>
-  <meta name="description" content="A free, native macOS disk-usage analyzer. See exactly what's filling your disk as an interactive sunburst or treemap, and reclaim the space — quickly and safely." />
+  <meta id="metaDesc" name="description" content="A free, native macOS disk-usage analyzer. See exactly what's filling your disk as an interactive sunburst or treemap, and reclaim the space — quickly and safely." />
 
+  <link rel="canonical" href="./" />
   <link rel="icon" href="icon.png" />
   <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="preload" as="image" href="icon-512.png" />
   <link rel="stylesheet" href="styles.css" />
 
+  <!-- hreflang alternates -->
+  <link rel="alternate" hreflang="x-default" href="./" />
+  <link rel="alternate" hreflang="en" href="?lang=en" />
+  <link rel="alternate" hreflang="nl" href="?lang=nl" />
+  <link rel="alternate" hreflang="fr" href="?lang=fr" />
+  <link rel="alternate" hreflang="de" href="?lang=de" />
+  <link rel="alternate" hreflang="it" href="?lang=it" />
+  <link rel="alternate" hreflang="pl" href="?lang=pl" />
+  <link rel="alternate" hreflang="ru" href="?lang=ru" />
+  <link rel="alternate" hreflang="es" href="?lang=es" />
+  <link rel="alternate" hreflang="pt-PT" href="?lang=pt-PT" />
+  <link rel="alternate" hreflang="sv" href="?lang=sv" />
+  <link rel="alternate" hreflang="tr" href="?lang=tr" />
+  <link rel="alternate" hreflang="uk" href="?lang=uk" />
+  <link rel="alternate" hreflang="zh-Hans" href="?lang=zh-Hans" />
+  <link rel="alternate" hreflang="zh-Hant" href="?lang=zh-Hant" />
+  <link rel="alternate" hreflang="ja" href="?lang=ja" />
+
+  <!-- Open Graph / Twitter -->
   <meta property="og:title" content="SpaceMonger — Find it. Free it." />
   <meta property="og:description" content="A free, native macOS disk-usage analyzer. Reclaim space — quickly and safely." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://raw.githubusercontent.com/ruudsl/spacemonger-for-mac/main/docs/screenshots/sunburst.png" />
+  <meta property="og:image" content="og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SpaceMonger",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "macOS 13+",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "url": "https://github.com/ruudsl/spacemonger-for-mac",
+    "downloadUrl": "https://github.com/ruudsl/spacemonger-for-mac/releases/latest",
+    "license": "https://opensource.org/licenses/MIT",
+    "image": "og.png"
+  }
+  </script>
+
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <header class="nav">
@@ -25,8 +65,11 @@
     <nav>
       <a href="#features" data-i18n="nav_features">Features</a>
       <a href="#screenshots" data-i18n="nav_screenshots">Screenshots</a>
+      <a href="#faq" data-i18n="nav_faq">FAQ</a>
       <a href="https://github.com/ruudsl/spacemonger-for-mac" target="_blank" rel="noopener">GitHub</a>
-      <select id="langSelect" class="lang-select" aria-label="Language"></select>
+      <span class="lang-wrap">🌐
+        <select id="langSelect" class="lang-select" aria-label="Language"></select>
+      </span>
       <a class="nav-cta" id="navDownload" data-i18n="nav_download" href="https://github.com/ruudsl/spacemonger-for-mac/releases/latest">Download</a>
     </nav>
   </header>
@@ -34,7 +77,7 @@
   <main id="top">
     <section class="hero">
       <div class="hero-glow" aria-hidden="true"></div>
-      <img class="hero-icon" src="icon-512.png" width="128" height="128" alt="SpaceMonger app icon" />
+      <img class="hero-icon" src="icon-512.png" width="128" height="128" alt="SpaceMonger app icon" fetchpriority="high" />
       <h1><span data-i18n="hero_find">Find it. </span><span class="grad" data-i18n="hero_free">Free it.</span></h1>
       <p class="tagline" data-i18n-html="tagline">
         See exactly what's filling your Mac's disk as an interactive
@@ -50,18 +93,34 @@
         </a>
       </div>
       <p class="meta" id="heroMeta" data-i18n="meta_default">Free &amp; open source · macOS 13+ · Apple Silicon &amp; Intel</p>
+      <p class="dl-info" id="dlInfo" hidden></p>
       <p class="meta-os" id="osHint" data-i18n="os_hint" hidden>Looks like you're not on a Mac — SpaceMonger is a macOS app.</p>
+      <div class="badges">
+        <a class="badge" id="starBadge" href="https://github.com/ruudsl/spacemonger-for-mac" target="_blank" rel="noopener" hidden>★ <span id="starCount">—</span></a>
+        <span class="badge" data-i18n="badge_oss">Open source</span>
+        <span class="badge">MIT</span>
+      </div>
     </section>
 
     <section id="screenshots" class="shots">
       <figure>
-        <img loading="lazy" src="shots/sunburst.png" alt="Sunburst map of a disk scan" />
+        <picture>
+          <source type="image/webp" srcset="shots/sunburst.webp" />
+          <img loading="lazy" width="2686" height="2120" src="shots/sunburst.png" alt="Sunburst map of a disk scan" />
+        </picture>
         <figcaption data-i18n="shot_sunburst">The sunburst map — ring size is proportional to on-disk usage.</figcaption>
       </figure>
       <figure>
-        <img loading="lazy" src="shots/treemap.png" alt="Treemap layout of a disk scan" />
+        <picture>
+          <source type="image/webp" srcset="shots/treemap.webp" />
+          <img loading="lazy" width="2686" height="2120" src="shots/treemap.png" alt="Treemap layout of a disk scan" />
+        </picture>
         <figcaption data-i18n="shot_treemap">Or a cushion-shaded treemap — switch layouts in one click.</figcaption>
       </figure>
+    </section>
+
+    <section id="demo" class="demo" hidden>
+      <video id="demoVideo" class="demo-video" muted loop playsinline width="1280" height="800"></video>
     </section>
 
     <section id="features" class="features">
@@ -77,6 +136,23 @@
         <div class="card"><h3 data-i18n="f8_t">🌍 15 languages</h3><p data-i18n="f8_d">English, Nederlands, Deutsch, Français, 日本語, 简体中文 and more.</p></div>
         <div class="card"><h3 data-i18n="f9_t">🛡️ Private by design</h3><p data-i18n="f9_d">Reads only file metadata — names &amp; sizes. Nothing leaves your Mac. No analytics.</p></div>
       </div>
+    </section>
+
+    <section id="whatsnew" class="whatsnew" hidden>
+      <h2 data-i18n="whatsnew_title">What's new</h2>
+      <div class="release">
+        <h3 id="releaseName"></h3>
+        <pre id="releaseNotes" class="release-notes"></pre>
+        <a id="releaseLink" class="btn btn-ghost" target="_blank" rel="noopener" data-i18n="whatsnew_all">All releases</a>
+      </div>
+    </section>
+
+    <section id="faq" class="faq">
+      <h2 data-i18n="faq_title">Frequently asked questions</h2>
+      <details><summary data-i18n="faq_q1">Is SpaceMonger free?</summary><p data-i18n="faq_a1">Yes — it's free and open source under the MIT license.</p></details>
+      <details><summary data-i18n="faq_q2">Is it safe and notarized?</summary><p data-i18n="faq_a2">Releases are signed and notarized by Apple. Deletions go to the Trash, and system files are protected.</p></details>
+      <details><summary data-i18n="faq_q3">How do I open it the first time?</summary><p data-i18n="faq_a3">If macOS warns about an unidentified developer, right-click the app and choose Open.</p></details>
+      <details><summary data-i18n="faq_q4">What about my privacy?</summary><p data-i18n="faq_a4">SpaceMonger reads only file names and sizes — never contents — and sends nothing off your Mac.</p></details>
     </section>
 
     <section class="download" id="download">
@@ -97,9 +173,13 @@
 
   <footer class="foot">
     <img src="icon.png" width="24" height="24" alt="" />
-    <span>SpaceMonger · <span data-i18n="foot_lic">MIT licensed</span> ·
+    <div class="foot-links">
+      <span>SpaceMonger · <span data-i18n="foot_lic">MIT licensed</span></span>
       <a href="https://github.com/ruudsl/spacemonger-for-mac" target="_blank" rel="noopener">GitHub</a>
-    </span>
+      <a href="https://github.com/ruudsl/spacemonger-for-mac/releases" target="_blank" rel="noopener" data-i18n="foot_releases">Releases</a>
+      <a href="https://github.com/ruudsl/spacemonger-for-mac/issues" target="_blank" rel="noopener" data-i18n="foot_issues">Report an issue</a>
+      <a href="#faq" data-i18n="foot_privacy">Privacy</a>
+    </div>
   </footer>
 
   <script src="i18n.js"></script>

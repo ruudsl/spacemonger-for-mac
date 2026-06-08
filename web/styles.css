@@ -185,3 +185,75 @@ a:hover { text-decoration: underline; }
 @media (min-width: 760px) {
   .shots { grid-template-columns: 1fr; }
 }
+
+/* ---- SEO/FAQ/conversion pass ---- */
+
+:root { --muted: #a6b1c6; }
+
+/* Anchor offset for the sticky nav */
+section[id] { scroll-margin-top: 72px; }
+
+/* Visible keyboard focus */
+a:focus-visible, button:focus-visible, select:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Language switcher */
+.lang-wrap { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 14px; }
+
+/* Badges (stars / OSS / MIT) */
+.badges { position: relative; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+.badge {
+  font-size: 12px; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 11px; background: var(--bg-soft);
+}
+a.badge:hover { color: var(--text); text-decoration: none; border-color: var(--muted); }
+#starBadge { color: #ffcf6b; }
+
+.dl-info { position: relative; margin-top: 8px; color: var(--muted); font-size: 13px; }
+
+/* What's new */
+.whatsnew { max-width: 760px; margin: 70px auto 0; padding: 0 22px; }
+.whatsnew h2 { text-align: center; font-size: clamp(24px, 4vw, 34px); margin: 0 0 18px; }
+.release { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+.release h3 { margin: 0 0 12px; font-size: 18px; }
+.release-notes {
+  white-space: pre-wrap; word-wrap: break-word;
+  font: inherit; color: var(--muted); font-size: 14px;
+  max-height: 280px; overflow: auto; margin: 0 0 16px;
+}
+
+/* FAQ */
+.faq { max-width: 760px; margin: 70px auto 0; padding: 0 22px; }
+.faq h2 { text-align: center; font-size: clamp(24px, 4vw, 34px); margin: 0 0 18px; }
+.faq details {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px 18px; margin-bottom: 10px;
+}
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq details[open] summary { margin-bottom: 8px; }
+.faq details p { color: var(--muted); margin: 0; }
+
+/* Demo */
+.demo { max-width: 1040px; margin: 36px auto 0; padding: 0 22px; }
+.demo-video { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0,0,0,0.45); }
+
+/* Footer links */
+.foot { flex-wrap: wrap; }
+.foot-links { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: center; }
+.foot-links a { color: var(--muted); }
+.foot-links a:hover { color: var(--text); }
+
+/* 404 */
+.notfound { text-align: center; padding: 120px 22px; }
+.notfound h1 { font-size: 64px; margin: 16px 0 6px; }
+.notfound p { color: var(--muted); margin: 0 0 24px; }
+
+/* Respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .hero-glow { display: none; }
+}
