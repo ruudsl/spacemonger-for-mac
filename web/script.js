@@ -67,10 +67,9 @@
     .then(function (repo) {
       var n = repo.stargazers_count;
       if (typeof n === "number") {
-        var badge = document.getElementById("starBadge");
         var count = document.getElementById("starCount");
-        if (count) count.textContent = n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
-        if (badge) badge.hidden = false;
+        var pretty = n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
+        if (count) count.textContent = "· " + pretty;
       }
     })
     .catch(function () {});

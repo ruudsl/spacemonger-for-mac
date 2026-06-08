@@ -16,10 +16,14 @@ app. Localized into all 15 app languages, with a release-tracking download CTA.
   links, and per-language `<title>` / meta description.
 - **Live data from GitHub**: download button → latest release asset; version +
   file size; a "What's new" section from the release notes; star count.
+- **Conversion**: benefit-led hero, a product showcase in a macOS window frame
+  that crossfades sunburst ⇄ treemap, a big "100% free · open source" badge, a
+  "★ Star on GitHub" CTA with live count, and a "SpaceMonger vs. paid
+  alternatives" comparison table.
 - **SEO**: canonical + `hreflang`, `sitemap.xml`, `robots.txt`, JSON-LD
   (`SoftwareApplication`), a real 1200×630 OG image.
-- **Performance**: lazy + sized images, `<picture>` WebP, preloaded hero icon,
-  cache headers.
+- **Performance**: lazy + sized images, preloaded hero shot, cache headers. Run
+  `optimize-images.sh` on a Mac to add WebP versions of the screenshots.
 - **A11y**: focus-visible styles, `prefers-reduced-motion`, semantic FAQ.
 - **Security headers** + a 404 page (`vercel.json`).
 - Optional **demo video**: drop `web/demo.mp4` and it appears automatically.
