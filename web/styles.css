@@ -334,6 +334,43 @@ a.badge:hover { color: var(--text); text-decoration: none; border-color: var(--m
 .compare-table .no { color: #5d6678; font-size: 17px; }
 .compare-table td strong { color: var(--text); }
 
+/* ---- Mobile / small screens ---- */
+@media (max-width: 720px) {
+  /* Nav: drop the in-page anchor links, keep brand + language + Download */
+  .nav { padding: 10px 14px; }
+  .nav nav { gap: 10px; }
+  .nav nav > a:not(.nav-cta) { display: none; }
+  .lang-wrap { font-size: 13px; }
+  .lang-select { padding: 5px 6px; font-size: 12px; }
+  .nav-cta { padding: 6px 12px; font-size: 14px; }
+  .brand span { font-size: 15px; }
+
+  /* Hero: tighter spacing, smaller type */
+  .hero { padding: 48px 16px 44px; }
+  .hero h1 { font-size: clamp(30px, 9vw, 46px); }
+  .hero-kicker { font-size: 12px; padding: 5px 12px; }
+  .tagline { font-size: 16px; }
+  .free-badge { font-size: 14px; padding: 7px 15px; }
+  .cta-row { gap: 10px; }
+  .btn { padding: 12px 18px; font-size: 14px; }
+  .btn-lg { padding: 14px 24px; font-size: 15px; }
+
+  /* Section side padding */
+  .showcase, .shots, .compare, .features, .faq, .whatsnew, .demo { padding-left: 16px; padding-right: 16px; }
+  .showcase { margin-top: 30px; }
+
+  /* Comparison table: let it fit the viewport instead of forcing a scroll */
+  .compare { margin-top: 56px; }
+  .compare-table { min-width: 0; font-size: 13px; }
+  .compare-table th, .compare-table td { padding: 10px 8px; }
+  .compare-table thead th { font-size: 13px; }
+  .compare-table .yes, .compare-table .no { font-size: 15px; }
+
+  /* macOS window chrome a touch smaller */
+  .window-bar { height: 28px; padding: 0 10px; }
+  .dot { width: 10px; height: 10px; }
+}
+
 /* Respect reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
