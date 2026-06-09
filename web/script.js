@@ -74,6 +74,32 @@
     })
     .catch(function () {});
 
+  // Mobile hamburger menu.
+  var header = document.querySelector(".nav");
+  var navToggle = document.getElementById("navToggle");
+  var primaryNav = document.getElementById("primaryNav");
+  if (header && navToggle) {
+    var setMenu = function (open) {
+      header.classList.toggle("open", open);
+      navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+    navToggle.addEventListener("click", function () {
+      setMenu(!header.classList.contains("open"));
+    });
+    if (primaryNav) {
+      primaryNav.addEventListener("click", function (e) {
+        if (e.target.closest("a")) setMenu(false);
+      });
+    }
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") setMenu(false);
+    });
+    // Reset when growing back to desktop so the panel never stays stuck.
+    window.addEventListener("resize", function () {
+      if (window.innerWidth > 720) setMenu(false);
+    });
+  }
+
   // Optional demo video (web/demo.mp4) — shown only if present.
   fetch("demo.mp4", { method: "HEAD" })
     .then(function (r) {
