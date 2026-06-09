@@ -312,7 +312,7 @@ final class SeenInodes {
 
     /// Returns `true` the first time this identity is seen, `false` afterwards.
     func firstSighting(_ identifier: any NSObjectProtocol) -> Bool {
-        let key = InodeKey(identifier)
+        let key = InodeKey(id: identifier)
         lock.lock(); defer { lock.unlock() }
         return seen.insert(key).inserted
     }
