@@ -29,7 +29,7 @@ struct SunburstView: View {
                 case .active(let location):
                     updateHover(at: location, size: geo.size)
                 case .ended:
-                    vm.hoveredNode = nil
+                    setHovered(nil)
                 }
             }
         }
@@ -136,9 +136,16 @@ struct SunburstView: View {
     private func updateHover(at location: CGPoint, size: CGSize) {
         guard let layout = vm.sunburstLayout else { return }
         switch layout.hit(at: location, in: size) {
-        case .segment(let segment): vm.hoveredNode = segment.node
-        case .center, .none: vm.hoveredNode = nil
+        case .segment(let segment): setHovered(segment.node)
+        case .center, .none: setHovered(nil)
         }
+    }
+
+    /// Publishing `hoveredNode` re-runs `body` and re-tessellates the whole
+    /// Canvas, so only do it when the hovered node actually changes — otherwise
+    /// every pointer move triggers a full redraw.
+    private func setHovered(_ node: FileNode?) {
+        if vm.hoveredNode?.id != node?.id { vm.hoveredNode = node }
     }
 
     private func handleSingleTap(at location: CGPoint, size: CGSize) {

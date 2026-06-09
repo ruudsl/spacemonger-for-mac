@@ -90,6 +90,7 @@
 "Total change: %@" = "Total change: %@";
 "%@ (%lld)" = "%@ (%lld)";
 "These are protected system items and were not deleted: %@" = "These are protected system items and were not deleted: %@";
+"Finish comparing two scans before deleting files." = "Finish comparing two scans before deleting files.";
 "Could not move to Trash: %@" = "Could not move to Trash: %@";
 "%lld in focus" = "%lld in focus";
 "Find it. Free it." = "Find it. Free it.";

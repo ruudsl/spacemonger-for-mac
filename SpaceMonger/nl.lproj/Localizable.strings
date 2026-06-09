@@ -110,6 +110,7 @@
 
 /* Veiligheid, focus, specs, gpscan */
 "These are protected system items and were not deleted: %@" = "Dit zijn beschermde systeemonderdelen en zijn niet verwijderd: %@";
+"Finish comparing two scans before deleting files." = "Rond het vergelijken van twee scans af voordat je bestanden verwijdert.";
 "Could not move to Trash: %@" = "Kon niet naar de prullenmand verplaatsen: %@";
 "%lld in focus" = "%lld in focus";
 "Find it. Free it." = "Vind het. Maak het vrij.";

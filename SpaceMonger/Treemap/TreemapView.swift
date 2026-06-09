@@ -43,17 +43,20 @@ struct TreemapView: View {
             .onContinuousHover { phase in
                 switch phase {
                 case .active(let location):
-                    let layout = cache.layout(focus: vm.focusNode ?? rootFallback, size: geo.size, revision: vm.revision)
-                    vm.hoveredNode = layout.tile(at: location)?.node
+                    guard let focus = vm.focusNode else { setHovered(nil); break }
+                    let layout = cache.layout(focus: focus, size: geo.size, revision: vm.revision)
+                    setHovered(layout.tile(at: location)?.node)
                 case .ended:
-                    vm.hoveredNode = nil
+                    setHovered(nil)
                 }
             }
         }
     }
 
-    private var rootFallback: FileNode {
-        vm.focusNode ?? FileNode(url: URL(fileURLWithPath: "/"), name: "/", kind: .directory)
+    /// Only publish a hover change when the node actually differs: each
+    /// assignment re-runs `body` and redraws the entire treemap Canvas.
+    private func setHovered(_ node: FileNode?) {
+        if vm.hoveredNode?.id != node?.id { vm.hoveredNode = node }
     }
 
     private func draw(layout: TreemapLayout, context: inout GraphicsContext) {

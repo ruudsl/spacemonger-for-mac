@@ -794,6 +794,13 @@ final class ScanViewModel: ObservableObject {
     }
 
     private func trashNodes(_ nodes: [FileNode]) {
+        // A scan comparison reads the live tree on a background task; mutating it
+        // here at the same time would be a data race on the same `FileNode`s.
+        guard !isComparing else {
+            lastError = loc("Finish comparing two scans before deleting files.")
+            return
+        }
+
         let candidates = nodes.filter { $0.isRealFileSystemItem && $0.parent != nil }
         guard !candidates.isEmpty else { return }
 
