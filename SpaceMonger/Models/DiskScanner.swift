@@ -40,7 +40,9 @@ struct DiskScanner {
         .nameKey,
         .totalFileAllocatedSizeKey,
         .fileAllocatedSizeKey,
-        .volumeIdentifierKey
+        .volumeIdentifierKey,
+        .fileResourceIdentifierKey,
+        .linkCountKey
     ]
 
     func scan(at url: URL,
@@ -50,6 +52,7 @@ struct DiskScanner {
         let fm = FileManager.default
         let reporter = ScanReporter(progress: progress)
         let unreadable = UnreadableCounter()
+        let seen = SeenInodes()
 
         let rootValues = try? url.resourceValues(forKeys: [.volumeIdentifierKey])
         let rootVolumeID = rootValues?.allValues[.volumeIdentifierKey] as? NSObject
@@ -95,7 +98,7 @@ struct DiskScanner {
                 topDirs.append(childURL)
                 topDirIsPackage.append(values?.isPackage ?? false)
             } else {
-                let bytes = Self.allocatedSize(values)
+                let bytes = Self.countedSize(values, seen: seen)
                 topFiles.append(FileNode(url: childURL,
                                          name: values?.name ?? childURL.lastPathComponent,
                                          kind: .file, size: bytes, fileCount: 1))
@@ -109,7 +112,8 @@ struct DiskScanner {
             do {
                 let node = try scanDirectory(url: topDirs[i], volumeID: rootVolumeID,
                                              fileManager: fm, isCancelled: isCancelled,
-                                             reporter: reporter, unreadable: unreadable)
+                                             reporter: reporter, unreadable: unreadable,
+                                             seen: seen)
                 if topDirIsPackage[i] {
                     let wrapped = FileNode(url: node.url, name: node.name, kind: .directory,
                                            isPackage: true, size: node.size,
@@ -149,7 +153,8 @@ struct DiskScanner {
                                fileManager fm: FileManager,
                                isCancelled: () -> Bool,
                                reporter: ScanReporter,
-                               unreadable: UnreadableCounter) throws -> FileNode {
+                               unreadable: UnreadableCounter,
+                               seen: SeenInodes) throws -> FileNode {
 
         if isCancelled() { throw CancellationError() }
 
@@ -196,7 +201,8 @@ struct DiskScanner {
             if values?.isDirectory == true {
                 let childNode = try scanDirectory(url: childURL, volumeID: volumeID,
                                                   fileManager: fm, isCancelled: isCancelled,
-                                                  reporter: reporter, unreadable: unreadable)
+                                                  reporter: reporter, unreadable: unreadable,
+                                                  seen: seen)
                 let node: FileNode
                 if values?.isPackage == true {
                     node = FileNode(url: childURL, name: childNode.name, kind: .directory,
@@ -210,7 +216,7 @@ struct DiskScanner {
                 totalSize += node.size
                 totalCount += node.fileCount
             } else {
-                let bytes = Self.allocatedSize(values)
+                let bytes = Self.countedSize(values, seen: seen)
                 children.append(FileNode(url: childURL,
                                          name: values?.name ?? childURL.lastPathComponent,
                                          kind: .file, size: bytes, fileCount: 1))
@@ -242,6 +248,20 @@ struct DiskScanner {
         if let v = values?.fileAllocatedSize { return Int64(v) }
         if let v = values?.fileSize { return Int64(v) }
         return 0
+    }
+
+    /// On-disk size for a regular file, counting a hard-linked inode only once.
+    /// A file with multiple hard links (common in Time Machine local snapshots,
+    /// and pnpm/Homebrew stores) otherwise gets counted once per link and badly
+    /// inflates the total. The first link encountered carries the size; the rest
+    /// report 0. Files with a single link skip the (locked) set entirely.
+    static func countedSize(_ values: URLResourceValues?, seen: SeenInodes) -> Int64 {
+        let bytes = allocatedSize(values)
+        let linkCount = (values?.allValues[.linkCountKey] as? Int) ?? 1
+        if linkCount > 1, let id = values?.fileResourceIdentifier, !seen.firstSighting(id) {
+            return 0
+        }
+        return bytes
     }
 }
 
@@ -282,6 +302,28 @@ private final class ScanReporter {
         lock.unlock()
         progress(snapshot)
     }
+}
+
+/// Thread-safe set of file identities already counted, shared across all scan
+/// workers so a hard-linked inode contributes its on-disk size only once.
+final class SeenInodes {
+    private let lock = NSLock()
+    private var seen = Set<InodeKey>()
+
+    /// Returns `true` the first time this identity is seen, `false` afterwards.
+    func firstSighting(_ identifier: any NSObjectProtocol) -> Bool {
+        let key = InodeKey(identifier)
+        lock.lock(); defer { lock.unlock() }
+        return seen.insert(key).inserted
+    }
+}
+
+/// Hashable wrapper around an opaque `fileResourceIdentifier` so it can live in
+/// a Swift `Set`. The identifier uniquely names a file within its volume.
+private struct InodeKey: Hashable {
+    let id: any NSObjectProtocol
+    static func == (lhs: InodeKey, rhs: InodeKey) -> Bool { lhs.id.isEqual(rhs.id) }
+    func hash(into hasher: inout Hasher) { hasher.combine(id.hash) }
 }
 
 private final class UnreadableCounter {

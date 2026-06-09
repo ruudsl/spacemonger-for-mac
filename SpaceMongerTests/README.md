@@ -14,6 +14,7 @@ test target.
    least once first.
 4. Run with **⌘U**.
 
-These cover `ExcludeMatcher`, `SystemPaths`, `ScanComparison` and `FileNode`.
+These cover `ExcludeMatcher`, `SystemPaths`, `ScanComparison`, `FileNode` and
+`DiskScanner` (hard-link de-duplication).
 UI tests (snapshot/integration) can be added the same way via a *UI Testing
 Bundle*.
